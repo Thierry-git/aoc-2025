@@ -30,5 +30,7 @@ private:
     int _value;
     int _modulus;
 
-    int addValuesMod(const int a, const int b) const { return (a + b) % _modulus; }
+    static int addValuesMod(const int a, const int b, const int modulus) {
+        return ((a + b) % modulus + modulus) % modulus;
+    }
 };

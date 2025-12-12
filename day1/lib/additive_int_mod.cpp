@@ -1,15 +1,15 @@
 #include "additive_int_mod.h"
 
 AdditiveIntMod::AdditiveIntMod(const int value, const int modulus) :
-_value(value % modulus), _modulus(modulus) { }
+_value(addValuesMod(value, 0, modulus)), _modulus(modulus) { }
 
 AdditiveIntMod& AdditiveIntMod::operator+=(const AdditiveIntMod& other) {
-    _value = addValuesMod(_value, other._value);
+    _value = addValuesMod(_value, other._value, _modulus);
     return *this;
 }
 
 AdditiveIntMod& AdditiveIntMod::operator-=(const AdditiveIntMod& other) {
-    _value = addValuesMod(_value, -other._value);
+    _value = addValuesMod(_value, -other._value, _modulus);
     return *this;
 }
 
