@@ -44,7 +44,13 @@ int main(int argc, char* argv[]) {
         break;
     }
 
-    solver->solve();
+    try {
+        const long solution = solver->solve();
+        std::cout << "[LOG] The summation of all bad IDs is " << solution << std::endl;
+    } catch (std::runtime_error e) {
+        std::cout << "[ERROR] " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }

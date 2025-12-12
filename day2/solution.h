@@ -8,9 +8,9 @@ namespace solution {
 
 struct Range {
     long from;
-    std::string strFrom;
+    int lenFrom;
     long to;
-    std::string strTo;
+    int lenTo;
 };
 
 std::unique_ptr<std::istream>& operator>>(
@@ -37,6 +37,9 @@ public:
 
 private:
     static long computeInvalidSum(const Range& range);
+    static long quotientCeil(long numerator, long denominator);
+    static long quotientFloor(long numerator, long denominator);
+    static long contributionFrom(int numRepeatedDigits, const Range& range);
 };
 
 class Day2Part2 : public Day2 {

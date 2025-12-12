@@ -1,5 +1,6 @@
 #include "solution.h"
 
+#include <cmath>
 #include <iostream>
 
 std::unique_ptr<std::istream> solution::Day2::getInputStream() {
@@ -11,11 +12,11 @@ std::unique_ptr<std::istream> solution::Day2::getInputStream() {
 std::unique_ptr<std::istream>& operator>>(
     std::unique_ptr<std::istream>& is, solution::Range& range) {
     char dash;
-    *is >> range.strFrom >> dash >> range.strTo;
+    *is >> range.from >> dash >> range.to;
     *is >> dash; /* Remove trailing comma if it exists */
 
-    range.from = atol(range.strFrom.c_str());
-    range.to = atol(range.strTo.c_str());
+    range.lenFrom = std::to_string(range.from).length();
+    range.lenTo = std::to_string(range.to).length();
 
     return is;
 }
@@ -23,15 +24,36 @@ std::unique_ptr<std::istream>& operator>>(
 long solution::Day2Part1::solve() {
     std::unique_ptr<std::istream> input = getInputStream();
 
-    long value = 0;
+    long sum = 0;
     Range range;
-    while (input >> range) value += computeInvalidSum(range);
+    while (input >> range) sum += computeInvalidSum(range);
 
-    return value;
+    return sum;
 }
 
 long solution::Day2Part1::computeInvalidSum(const Range& range) {
-    const long length = range.to - range.from;
+    const int minRepeatedDigits = quotientCeil(range.lenFrom, 2);
+    const int maxRepeatedDigits = quotientFloor(range.lenTo, 2);
 
-    long value = 0;
+    long contribution = 0;
+    for (int k = minRepeatedDigits; k <= maxRepeatedDigits; k++)
+        contribution += contributionFrom(k, range);
+
+    return contribution;
+}
+
+long solution::Day2Part1::contributionFrom(int numRepeatedDigits, const Range& range) {
+    const long zeroSandwich = std::pow(10, numRepeatedDigits) + 1;
+    const long lower = quotientCeil(range.from, zeroSandwich);
+    const long upper = quotientCeil(range.to, zeroSandwich);
+
+    return zeroSandwich * (upper * (upper + 1) - (lower - 1) * lower) / 2;
+}
+
+long solution::Day2Part1::quotientCeil(long numerator, long denominator) {
+    return -(-numerator / denominator);
+}
+
+long solution::Day2Part1::quotientFloor(long numerator, long denominator) {
+    return numerator / denominator;
 }
