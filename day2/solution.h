@@ -7,8 +7,10 @@
 namespace solution {
 
 struct Range {
-    int from;
-    int to;
+    long from;
+    std::string strFrom;
+    long to;
+    std::string strTo;
 };
 
 std::unique_ptr<std::istream>& operator>>(
@@ -19,7 +21,7 @@ public:
     Day2(const std::string& inputFile) : _inputFile(inputFile) { };
     virtual ~Day2() = default;
 
-    virtual void solve() = 0;
+    virtual long solve() = 0;
 
 protected:
     std::unique_ptr<std::istream> getInputStream();
@@ -31,12 +33,15 @@ private:
 class Day2Part1 : public Day2 {
 public:
     Day2Part1(const std::string& inputFile) : Day2(inputFile) { };
-    void solve() override { };
+    long solve() override { };
+
+private:
+    static long computeInvalidSum(const Range& range);
 };
 
 class Day2Part2 : public Day2 {
 public:
     Day2Part2(const std::string& inputFile) : Day2(inputFile) { };
-    void solve() override { };
+    long solve() override { };
 };
 };
