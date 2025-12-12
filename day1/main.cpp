@@ -6,7 +6,7 @@
 #include <set>
 #include <string>
 
-#define CONFIG_FILE_PATH "config"
+#define CONFIG_FILE_PATH "config.txt"
 
 #define INPUT_PATH_ARG "inputPath"
 #define MODULUS_ARG "modulus"
