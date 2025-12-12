@@ -42,19 +42,20 @@ long solution::Day2::computeInvalidSum(const Range& range) const {
 
     long contribution = 0;
     for (int k = minRepeatedDigits; k <= maxRepeatedDigits; k++)
-        contribution += contributionFrom(k, range);
+        for (const Pattern& pattern : contributingPatterns(k, range))
+            contribution += contributionFrom(pattern, range);
 
     return contribution;
 }
 
-long solution::Day2Part1::contributionFrom(
-    int numRepeatedDigits, const Range& range) const {
-    const long minimum = std::pow(10, numRepeatedDigits - 1);
-    const long maximum = 10 * minimum - 1;
-    const long zeroSandwich = maximum + 2;
+long solution::Day2::contributionFrom(const Pattern& pattern, const Range& range) const {
 
-    long lower = quotientCeil(range.from, zeroSandwich);
-    long upper = quotientFloor(range.to, zeroSandwich);
+    const long minimum = std::pow(BASE, pattern.length - 1);
+    const long maximum = BASE * minimum - 1;
+    const long multiplier = multiplierOf(pattern);
+
+    long lower = quotientCeil(range.from, multiplier);
+    long upper = quotientFloor(range.to, multiplier);
 
     if (lower < minimum) lower = minimum;
     if (upper > maximum) upper = maximum;
@@ -64,7 +65,20 @@ long solution::Day2Part1::contributionFrom(
     const long count = upper - lower + 1;
     const long sum = (lower + upper) * count / 2;
 
-    return zeroSandwich * sum;
+    return multiplier * sum;
+}
+
+std::vector<solution::Pattern> solution::Day2Part1::contributingPatterns(
+    const int numRepeatingDigits, const Range& _) const {
+    (void)_;
+    return { { numRepeatingDigits, 2 } };
+}
+
+long solution::Day2::multiplierOf(const Pattern& pattern) {
+    long multiplier = 0;
+    for (int i = 0; i < pattern.reps; i++)
+        multiplier += std::pow(BASE, i * pattern.length);
+    return multiplier;
 }
 
 long solution::Day2::quotientCeil(long numerator, long denominator) {
