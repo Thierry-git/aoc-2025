@@ -30,9 +30,6 @@ long solution::Day2Part1::solve() const {
     Range range;
     while (*input >> range) {
         long contribution = computeInvalidSum(range);
-        std::cout << "[DEBUG] Range " << range.from << "-" << range.to << " contributes "
-                  << contribution << " (running total: " << (sum + contribution) << ")"
-                  << std::endl;
         sum += contribution;
     }
 
