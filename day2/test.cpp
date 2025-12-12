@@ -71,7 +71,7 @@ using Day2Part2Test = TestDecorator<Day2Part2>;
 
 int main() {
     static constexpr int NUM_TESTS_PART1 = 6;
-    static constexpr int NUM_TESTS_PART2 = 1;
+    static constexpr int NUM_TESTS_PART2 = 2;
 
     for (int i = 1; i <= NUM_TESTS_PART1; i++) {
         const std::string testName = "input/part1-test" + std::to_string(i) + ".txt";
