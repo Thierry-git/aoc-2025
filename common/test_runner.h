@@ -55,8 +55,11 @@ void runTests(const std::vector<std::string>& testFiles, const std::string& part
     for (const auto& testFile : testFiles) {
         try {
             TestType test(testFile);
-            test.solve();
-            passed++;
+            if (test.solve()) {
+                passed++;
+            } else {
+                failed++;
+            }
         } catch (const std::exception& e) {
             std::cerr << "[" << testFile << "] ERROR: " << e.what() << std::endl;
             failed++;

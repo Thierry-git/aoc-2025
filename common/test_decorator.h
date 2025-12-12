@@ -32,12 +32,11 @@ public:
 
     /**
      * @brief Solve and verify against expected value.
-     * @return The computed result
+     * @return true if the result matches expected, false otherwise
      */
-    auto solve() const -> decltype(SolverType::solve()) {
+    bool solve() const {
         const auto result = SolverType::solve();
-        verifyResult(result);
-        return result;
+        return verifyResult(result);
     }
 
     auto getExpected() const { return _expected; }
@@ -68,14 +67,17 @@ protected:
      * @brief Verify the result against expected value.
      *
      * Override for custom verification behavior.
+     * @return true if verification passed, false otherwise
      */
-    template <typename T> void verifyResult(const T& result) const {
-        if (result == _expected) {
+    template <typename T> bool verifyResult(const T& result) const {
+        const bool success = result == _expected;
+        if (success) {
             std::cout << _logPrefix << " ✓ PASSED" << std::endl;
         } else {
             std::cout << _logPrefix << " ✗ FAILED: Expected " << _expected << ", got "
                       << result << std::endl;
         }
+        return success;
     }
 
     const std::string& logPrefix() const { return _logPrefix; }
