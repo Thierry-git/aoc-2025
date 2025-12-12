@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <set>
 #include <string>
 
@@ -14,6 +15,21 @@
 std::string inputPath;
 unsigned initValue;
 unsigned modulus;
+
+enum class Part {
+    PART1,
+    PART2,
+};
+
+std::optional<Part> partFromString(const std::string& str) {
+    if (str == "part1") {
+        return Part::PART1;
+    } else if (str == "part2") {
+        return Part::PART2;
+    } else {
+        return std::nullopt;
+    }
+}
 
 /**
  * @returns true if all required args were set
@@ -68,21 +84,30 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc < 2) {
-        std::cerr << "[ERROR] Missing executable name argument" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    const std::string part = argv[1];
-    if (part != "part1" && part != "part2") {
-        std::cerr << "[ERROR] Invalid part argument: " << part << std::endl;
+        std::cerr << "[ERROR] Missing part argument" << std::endl;
         std::cerr << "        Expected 'part1' or 'part2'" << std::endl;
         return EXIT_FAILURE;
     }
 
-    const solution::Day1 solver(inputPath, initValue, modulus);
+    const std::optional<Part> part = partFromString(argv[1]);
+    if (!part) {
+        std::cerr << "[ERROR] Invalid part argument: " << argv[1] << std::endl;
+        std::cerr << "        Expected 'part1' or 'part2'" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    std::unique_ptr<solution::Day1> solver;
+    switch (*part) {
+    case Part::PART1:
+        solver = std::make_unique<solution::Day1Part1>(inputPath, initValue, modulus);
+        break;
+    case Part::PART2:
+        solver = std::make_unique<solution::Day1Part2>(inputPath, initValue, modulus);
+        break;
+    }
+
     try {
-        const unsigned password
-            = (part == "part1") ? solver.solvePart1() : solver.solvePart2();
+        const unsigned password = solver->solve();
         std::cout << "[LOG] The password is: " << password << std::endl;
     } catch (const std::runtime_error& e) {
         std::cerr << "[ERROR] " << e.what() << std::endl;
