@@ -17,6 +17,8 @@ struct Range {
 struct Pattern {
     int length;
     int reps;
+
+    Pattern(int l, int r) : length(l), reps(r) { }
 };
 
 std::istream& operator>>(std::istream& is, solution::Range& range);
@@ -29,11 +31,9 @@ public:
     long solve() const;
 
 protected:
-    virtual std::vector<Pattern> contributingPatterns(
-        const int numRepeatingDigits, const Range& range) const
-        = 0;
+    virtual std::vector<Pattern> contributingPatterns(const Range& range) const = 0;
+    virtual long contributionFrom(const Pattern& pattern, const Range& range) const;
 
-    long contributionFrom(const Pattern& pattern, const Range& range) const;
     long computeInvalidSum(const Range& range) const;
 
     static long quotientCeil(long numerator, long denominator);
@@ -51,8 +51,7 @@ public:
     Day2Part1(const std::string& inputFile) : Day2(inputFile) { }
 
 protected:
-    std::vector<Pattern> contributingPatterns(
-        const int numRepeatedDigits, const Range& range) const;
+    std::vector<Pattern> contributingPatterns(const Range& range) const override;
 };
 
 class Day2Part2 : public Day2 {
@@ -60,9 +59,11 @@ public:
     Day2Part2(const std::string& inputFile) : Day2(inputFile) { };
 
 protected:
-    std::vector<Pattern> contributingPatterns(
-        const int numRepeatedDigits, const Range& range) const {
-        return {};
-    };
+    std::vector<Pattern> contributingPatterns(const Range& range) const override;
+    long contributionFrom(const Pattern& pattern, const Range& range) const override;
+
+private:
+    static std::vector<int> divisors(const int n);
+    static int mobiusFunction(int n);
 };
 };

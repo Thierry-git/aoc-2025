@@ -70,11 +70,18 @@ using Day2Part2Test = TestDecorator<Day2Part2>;
 }
 
 int main() {
-    static constexpr int NUM_TESTS = 6;
+    static constexpr int NUM_TESTS_PART1 = 6;
+    static constexpr int NUM_TESTS_PART2 = 1;
 
-    for (int i = 1; i <= NUM_TESTS; i++) {
-        const std::string testName = "input/test" + std::to_string(i) + ".txt";
+    for (int i = 1; i <= NUM_TESTS_PART1; i++) {
+        const std::string testName = "input/part1-test" + std::to_string(i) + ".txt";
         const solution::Day2Part1Test test(testName);
+        test.solve();
+    }
+
+    for (int i = 1; i <= NUM_TESTS_PART2; i++) {
+        const std::string testName = "input/part2-test" + std::to_string(i) + ".txt";
+        const solution::Day2Part2Test test(testName);
         test.solve();
     }
 

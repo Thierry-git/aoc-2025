@@ -41,13 +41,9 @@ long solution::Day2::solve() const {
 
 long solution::Day2::computeInvalidSum(const Range& range) const {
 
-    const int minRepeatedDigits = quotientCeil(range.lenFrom, 2);
-    const int maxRepeatedDigits = quotientFloor(range.lenTo, 2);
-
     long contribution = 0;
-    for (int k = minRepeatedDigits; k <= maxRepeatedDigits; k++)
-        for (const Pattern& pattern : contributingPatterns(k, range))
-            contribution += contributionFrom(pattern, range);
+    for (const Pattern& pattern : contributingPatterns(range))
+        contribution += contributionFrom(pattern, range);
 
     return contribution;
 }
@@ -73,10 +69,63 @@ long solution::Day2::contributionFrom(const Pattern& pattern, const Range& range
 }
 
 std::vector<solution::Pattern> solution::Day2Part1::contributingPatterns(
-    const int numRepeatingDigits, const Range& _) const {
+    const Range& range) const {
 
-    (void)_;
-    return { { numRepeatingDigits, 2 } };
+    std::vector<Pattern> patterns;
+    for (int totalDigits = range.lenFrom; totalDigits <= range.lenTo; totalDigits++) {
+        if ((totalDigits % 2) != 0) continue;
+        patterns.emplace_back(totalDigits / 2, 2);
+    }
+    return patterns;
+}
+
+std::vector<solution::Pattern> solution::Day2Part2::contributingPatterns(
+    const Range& range) const {
+
+    std::vector<Pattern> patterns;
+    for (int totalDigits = range.lenFrom; totalDigits <= range.lenTo; totalDigits++) {
+        for (int patternLen : divisors(totalDigits)) {
+            const int reps = totalDigits / patternLen;
+            if (reps < 2) continue;
+            patterns.emplace_back(patternLen, reps);
+        }
+    }
+    return patterns;
+}
+
+std::vector<int> solution::Day2Part2::divisors(const int n) {
+
+    std::vector<int> divs;
+    for (int d = 1; d <= n / 2; d++)
+        if ((n % d) == 0) divs.push_back(d);
+
+    return divs;
+}
+
+int solution::Day2Part2::mobiusFunction(int n) {
+    if (n == 1) return 1;
+
+    int primeFactors = 0;
+    int temp = n;
+
+    for (int p = 2; p * p <= temp; p++) {
+        if (temp % p == 0) {
+            primeFactors++;
+            temp /= p;
+            if (temp % p == 0) return 0;
+        }
+    }
+
+    if (temp > 1) primeFactors++;
+
+    return (primeFactors % 2 == 0) ? 1 : -1;
+}
+
+long solution::Day2Part2::contributionFrom(
+    const Pattern& pattern, const Range& range) const {
+    long baseContribution = Day2::contributionFrom(pattern, range);
+    int mu = mobiusFunction(pattern.reps);
+    return -mu * baseContribution;
 }
 
 long solution::Day2::multiplierOf(const Pattern& pattern) {
