@@ -23,7 +23,7 @@ std::istream& solution::operator>>(std::istream& is, solution::Range& range) {
     return is;
 }
 
-long solution::Day2Part1::solve() const {
+long solution::Day2::solve() const {
     std::unique_ptr<std::istream> input = getInputStream();
 
     long sum = 0;
@@ -36,7 +36,7 @@ long solution::Day2Part1::solve() const {
     return sum;
 }
 
-long solution::Day2Part1::computeInvalidSum(const Range& range) {
+long solution::Day2::computeInvalidSum(const Range& range) const {
     const int minRepeatedDigits = quotientCeil(range.lenFrom, 2);
     const int maxRepeatedDigits = quotientFloor(range.lenTo, 2);
 
@@ -47,7 +47,8 @@ long solution::Day2Part1::computeInvalidSum(const Range& range) {
     return contribution;
 }
 
-long solution::Day2Part1::contributionFrom(int numRepeatedDigits, const Range& range) {
+long solution::Day2Part1::contributionFrom(
+    int numRepeatedDigits, const Range& range) const {
     const long minimum = std::pow(10, numRepeatedDigits - 1);
     const long maximum = 10 * minimum - 1;
     const long zeroSandwich = maximum + 2;
@@ -66,10 +67,10 @@ long solution::Day2Part1::contributionFrom(int numRepeatedDigits, const Range& r
     return zeroSandwich * sum;
 }
 
-long solution::Day2Part1::quotientCeil(long numerator, long denominator) {
+long solution::Day2::quotientCeil(long numerator, long denominator) {
     return (numerator + denominator - 1) / denominator;
 }
 
-long solution::Day2Part1::quotientFloor(long numerator, long denominator) {
+long solution::Day2::quotientFloor(long numerator, long denominator) {
     return numerator / denominator;
 }

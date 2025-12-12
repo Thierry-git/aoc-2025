@@ -15,7 +15,7 @@ public:
             _logPrefix.begin(), _logPrefix.end(), _logPrefix.begin(), ::toupper);
     }
 
-    long solve() const override {
+    long solve() const {
         const long result = SolverType::solve();
         verifyResult(result);
         return result;
