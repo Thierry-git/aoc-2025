@@ -62,18 +62,18 @@ unsigned solution::Day1Part2::rotate(
     count += turns;
 
     const AdditiveIntMod before = current;
-    bool passedZero;
+    bool passedOrEndedAtZero;
     switch (rotation.direction) {
     case Direction::LEFT:
         current -= rotValue;
-        passedZero = current > before;
+        passedOrEndedAtZero = (current - 1 > before - 1);
         break;
     case Direction::RIGHT:
         current += rotValue;
-        passedZero = current < before;
+        passedOrEndedAtZero = (current + 1 < before + 1);
         break;
     }
-    if (passedZero) count++;
+    if (passedOrEndedAtZero) count++;
 
     return count;
 }
