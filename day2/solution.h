@@ -11,11 +11,8 @@ struct Range {
     int to;
 };
 
-std::istream& operator>>(std::istream& is, Range& range) {
-    char dash;
-    is >> range.from >> dash >> range.to;
-    return is >> dash; /* Remove trailing comma if it exists */
-}
+std::unique_ptr<std::istream>& operator>>(
+    std::unique_ptr<std::istream>& is, solution::Range& range);
 
 class Day2 {
 public:
