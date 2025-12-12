@@ -65,11 +65,11 @@ unsigned solution::Day1Part2::rotate(
     bool passedZero;
     switch (rotation.direction) {
     case Direction::LEFT:
-        current -= rotation.value;
+        current -= rotValue;
         passedZero = current > before;
         break;
     case Direction::RIGHT:
-        current += rotation.value;
+        current += rotValue;
         passedZero = current < before;
         break;
     }

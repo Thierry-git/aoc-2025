@@ -22,20 +22,10 @@ std::istream& operator>>(std::istream& is, Rotation& rotation);
 
 class Day1 {
 public:
-    Day1(const std::string& inputPath, const int initValue, const unsigned modulus) :
-    _inputPath(inputPath), _initValue(initValue), _modulus(modulus) { }
+    Day1(const std::string& inputPath, const int initValue, const int modulus) :
+    _inputPath(inputPath), _initValue(initValue % modulus), _modulus(modulus) { }
 
     unsigned solve() const;
-
-protected:
-    /**
-     * @returns the quantity to increment password by when rotating
-     *
-     * @note Must rotate `current` appropriately as a side-effect
-     */
-    virtual unsigned rotate(AdditiveIntMod& current, const Rotation& rotation) const = 0;
-
-    unsigned _modulus;
 
 private:
     const std::string _inputPath;
@@ -47,14 +37,32 @@ private:
             throw std::runtime_error("Failed to open input file: " + _inputPath);
         return input;
     }
+
+protected:
+    /**
+     * @returns the quantity to increment password by when rotating
+     *
+     * @note Must rotate `current` appropriately as a side-effect
+     */
+    virtual unsigned rotate(AdditiveIntMod& current, const Rotation& rotation) const = 0;
+
+    const int _modulus;
 };
 
 class Day1Part1 : public Day1 {
+public:
+    Day1Part1(const std::string& inputPath, const int initValue, const int modulus) :
+    Day1(inputPath, initValue, modulus) { }
+
 protected:
     unsigned rotate(AdditiveIntMod& current, const Rotation& rotation) const override;
 };
 
 class Day1Part2 : public Day1 {
+public:
+    Day1Part2(const std::string& inputPath, const int initValue, const int modulus) :
+    Day1(inputPath, initValue, modulus) { }
+
 protected:
     unsigned rotate(AdditiveIntMod& current, const Rotation& rotation) const override;
 };
