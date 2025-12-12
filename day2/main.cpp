@@ -5,7 +5,7 @@
 #include <optional>
 #include <string>
 
-static constexpr char* INPUT_FILE = "input/input.txt";
+static const char* INPUT_FILE = "input/test1.txt";
 
 enum class Part {
     PART1,
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     try {
         const long solution = solver->solve();
         std::cout << "[LOG] The summation of all bad IDs is " << solution << std::endl;
-    } catch (std::runtime_error e) {
+    } catch (const std::runtime_error& e) {
         std::cout << "[ERROR] " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
