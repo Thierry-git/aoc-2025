@@ -20,8 +20,6 @@ std::istream& solution::operator>>(std::istream& is, solution::Range& range) {
     /* Remove trailing comma if it exists */
     if (is.peek() == ',') is.get();
 
-    std::cout << "Retrieved from=" << range.from << " to=" << range.to << std::endl;
-
     return is;
 }
 
@@ -47,15 +45,23 @@ long solution::Day2Part1::computeInvalidSum(const Range& range) {
 }
 
 long solution::Day2Part1::contributionFrom(int numRepeatedDigits, const Range& range) {
-    const long zeroSandwich = std::pow(10, numRepeatedDigits) + 1;
-    const long lower = quotientCeil(range.from, zeroSandwich);
-    const long upper = quotientCeil(range.to, zeroSandwich);
+    const long minimum = std::pow(10, numRepeatedDigits - 1);
+    const long maximum = 10 * minimum - 1;
+    const long zeroSandwich = maximum + 2;
 
-    return zeroSandwich * (upper * (upper + 1) - (lower - 1) * lower) / 2;
+    long lower = quotientCeil(range.from, zeroSandwich);
+    lower = lower >= minimum ? lower : 1;
+    long upper = quotientFloor(range.to, zeroSandwich);
+    upper = upper <= maximum ? upper : maximum;
+
+    const long actualLower = lower * zeroSandwich;
+    const long actualUpper = upper * zeroSandwich;
+
+    return (actualUpper * (upper + 1) - (lower - 1) * actualLower) / 2;
 }
 
 long solution::Day2Part1::quotientCeil(long numerator, long denominator) {
-    return -(-numerator / denominator);
+    return (numerator + denominator - 1) / denominator;
 }
 
 long solution::Day2Part1::quotientFloor(long numerator, long denominator) {

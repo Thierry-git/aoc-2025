@@ -1,5 +1,6 @@
 #include "solution.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 
@@ -9,6 +10,9 @@ template <typename SolverType> class TestDecorator : public SolverType {
 public:
     TestDecorator(const std::string& inputFile) : SolverType(inputFile) {
         parseExpectedValue();
+        _logPrefix = "[" + inputFile + "]";
+        std::transform(
+            _logPrefix.begin(), _logPrefix.end(), _logPrefix.begin(), ::toupper);
     }
 
     long solve() override {
@@ -35,6 +39,8 @@ protected:
     }
 
 private:
+    std::string _logPrefix = "[TEST]";
+
     void parseExpectedValue() {
         std::ifstream file(this->_inputFile);
         if (!file) throw std::runtime_error("Cannot open test file");
@@ -48,10 +54,10 @@ private:
 
     void verifyResult(long result) const {
         if (result == _expected) {
-            std::cout << "✓ Test PASSED: " << result << std::endl;
+            std::cout << _logPrefix << " ✓ PASSED" << std::endl;
         } else {
-            std::cout << "✗ Test FAILED: Expected " << _expected << ", got " << result
-                      << std::endl;
+            std::cout << _logPrefix << " ✗ FAILED: Expected " << _expected << ", got "
+                      << result << std::endl;
         }
     }
 
