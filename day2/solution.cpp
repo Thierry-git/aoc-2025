@@ -4,6 +4,7 @@
 #include <iostream>
 
 std::unique_ptr<std::istream> solution::Day2::getInputStream() const {
+
     std::unique_ptr<std::ifstream> input = std::make_unique<std::ifstream>(_inputFile);
     if (!input || !*input) throw std::runtime_error("Input file not found");
 
@@ -11,6 +12,7 @@ std::unique_ptr<std::istream> solution::Day2::getInputStream() const {
 }
 
 std::istream& solution::operator>>(std::istream& is, solution::Range& range) {
+
     char dash;
     if (!(is >> range.from >> dash >> range.to)) return is;
 
@@ -24,6 +26,7 @@ std::istream& solution::operator>>(std::istream& is, solution::Range& range) {
 }
 
 long solution::Day2::solve() const {
+
     std::unique_ptr<std::istream> input = getInputStream();
 
     long sum = 0;
@@ -37,6 +40,7 @@ long solution::Day2::solve() const {
 }
 
 long solution::Day2::computeInvalidSum(const Range& range) const {
+
     const int minRepeatedDigits = quotientCeil(range.lenFrom, 2);
     const int maxRepeatedDigits = quotientFloor(range.lenTo, 2);
 
@@ -70,11 +74,13 @@ long solution::Day2::contributionFrom(const Pattern& pattern, const Range& range
 
 std::vector<solution::Pattern> solution::Day2Part1::contributingPatterns(
     const int numRepeatingDigits, const Range& _) const {
+
     (void)_;
     return { { numRepeatingDigits, 2 } };
 }
 
 long solution::Day2::multiplierOf(const Pattern& pattern) {
+
     long multiplier = 0;
     for (int i = 0; i < pattern.reps; i++)
         multiplier += std::pow(BASE, i * pattern.length);
@@ -82,9 +88,11 @@ long solution::Day2::multiplierOf(const Pattern& pattern) {
 }
 
 long solution::Day2::quotientCeil(long numerator, long denominator) {
+
     return (numerator + denominator - 1) / denominator;
 }
 
 long solution::Day2::quotientFloor(long numerator, long denominator) {
+
     return numerator / denominator;
 }
