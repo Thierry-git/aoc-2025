@@ -21,12 +21,14 @@ namespace aoc {
  * The TestDecorator intercepts getInputStream() to skip the header lines,
  * parses the expected value, and verifies the result after solve().
  *
- * @tparam SolverType The concrete solver class to wrap (must inherit from Solver)
+ * @tparam SolverType The concrete solver class to wrap (must be Solver<T> for some T)
  */
-template <typename SolverType> class TestDecorator : public SolverType {
+template <typename SolverType> class TestDecorator : public Solver<bool> {
+    using ResultType = decltype(std::declval<SolverType>().solve());
+
 public:
     explicit TestDecorator(const std::string& inputFile) :
-    SolverType(inputFile), _logPrefix(makeLogPrefix(inputFile)) {
+    Solver<bool>(inputFile), _solver(inputFile), _logPrefix(makeLogPrefix(inputFile)) {
         parseExpectedValue();
     }
 
@@ -34,8 +36,8 @@ public:
      * @brief Solve and verify against expected value.
      * @return true if the result matches expected, false otherwise
      */
-    bool solve() const {
-        const auto result = SolverType::solve();
+    bool solve() const override {
+        const auto result = _solver.solve();
         return verifyResult(result);
     }
 
@@ -83,8 +85,9 @@ protected:
     const std::string& logPrefix() const { return _logPrefix; }
 
 private:
+    SolverType _solver;
     std::string _logPrefix;
-    decltype(std::declval<SolverType>().solve()) _expected {};
+    ResultType _expected {};
 
     static std::string makeLogPrefix(const std::string& inputFile) {
         std::string prefix = "[" + inputFile + "]";
