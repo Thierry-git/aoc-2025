@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-std::unique_ptr<std::istream> solution::Day2::getInputStream() {
+std::unique_ptr<std::istream> solution::Day2::getInputStream() const {
     std::unique_ptr<std::ifstream> input = std::make_unique<std::ifstream>(_inputFile);
     if (!input || !*input) throw std::runtime_error("Input file not found");
 
@@ -23,12 +23,18 @@ std::istream& solution::operator>>(std::istream& is, solution::Range& range) {
     return is;
 }
 
-long solution::Day2Part1::solve() {
+long solution::Day2Part1::solve() const {
     std::unique_ptr<std::istream> input = getInputStream();
 
     long sum = 0;
     Range range;
-    while (*input >> range) sum += computeInvalidSum(range);
+    while (*input >> range) {
+        long contribution = computeInvalidSum(range);
+        std::cout << "[DEBUG] Range " << range.from << "-" << range.to << " contributes "
+                  << contribution << " (running total: " << (sum + contribution) << ")"
+                  << std::endl;
+        sum += contribution;
+    }
 
     return sum;
 }
@@ -50,14 +56,17 @@ long solution::Day2Part1::contributionFrom(int numRepeatedDigits, const Range& r
     const long zeroSandwich = maximum + 2;
 
     long lower = quotientCeil(range.from, zeroSandwich);
-    lower = lower >= minimum ? lower : 1;
     long upper = quotientFloor(range.to, zeroSandwich);
-    upper = upper <= maximum ? upper : maximum;
 
-    const long actualLower = lower * zeroSandwich;
-    const long actualUpper = upper * zeroSandwich;
+    if (lower < minimum) lower = minimum;
+    if (upper > maximum) upper = maximum;
 
-    return (actualUpper * (upper + 1) - (lower - 1) * actualLower) / 2;
+    if (lower > upper) return 0;
+
+    const long count = upper - lower + 1;
+    const long sum = (lower + upper) * count / 2;
+
+    return zeroSandwich * sum;
 }
 
 long solution::Day2Part1::quotientCeil(long numerator, long denominator) {

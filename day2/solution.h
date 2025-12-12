@@ -20,17 +20,17 @@ public:
     Day2(const std::string& inputFile) : _inputFile(inputFile) { };
     virtual ~Day2() = default;
 
-    virtual long solve() = 0;
+    virtual long solve() const = 0;
 
 protected:
-    virtual std::unique_ptr<std::istream> getInputStream();
+    virtual std::unique_ptr<std::istream> getInputStream() const;
     const std::string _inputFile;
 };
 
 class Day2Part1 : public Day2 {
 public:
     Day2Part1(const std::string& inputFile) : Day2(inputFile) { };
-    long solve() override;
+    long solve() const override;
 
 private:
     static long computeInvalidSum(const Range& range);
@@ -42,6 +42,6 @@ private:
 class Day2Part2 : public Day2 {
 public:
     Day2Part2(const std::string& inputFile) : Day2(inputFile) { };
-    long solve() override { return 0; };
+    long solve() const override { return 0; };
 };
 };

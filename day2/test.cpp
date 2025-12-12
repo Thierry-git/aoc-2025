@@ -15,7 +15,7 @@ public:
             _logPrefix.begin(), _logPrefix.end(), _logPrefix.begin(), ::toupper);
     }
 
-    long solve() override {
+    long solve() const override {
         const long result = SolverType::solve();
         verifyResult(result);
         return result;
@@ -24,7 +24,7 @@ public:
     long getExpected() const { return _expected; }
 
 protected:
-    std::unique_ptr<std::istream> getInputStream() override {
+    std::unique_ptr<std::istream> getInputStream() const override {
         std::unique_ptr<std::ifstream> input
             = std::make_unique<std::ifstream>(this->_inputFile);
         if (!input || !*input) throw std::runtime_error("Input file not found");
@@ -70,8 +70,13 @@ using Day2Part2Test = TestDecorator<Day2Part2>;
 }
 
 int main() {
-    solution::Day2Part1Test test("input/test1.txt");
-    test.solve();
+    static constexpr int NUM_TESTS = 5;
+
+    for (int i = 1; i <= NUM_TESTS; i++) {
+        const std::string testName = "input/test" + std::to_string(i) + ".txt";
+        const solution::Day2Part1Test test(testName);
+        test.solve();
+    }
 
     return EXIT_SUCCESS;
 }

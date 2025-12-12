@@ -5,7 +5,7 @@
 #include <optional>
 #include <string>
 
-static const char* INPUT_FILE = "input/test1.txt";
+static const char* INPUT_FILE = "input/input.txt";
 
 enum class Part {
     PART1,
