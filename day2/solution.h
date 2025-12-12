@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 namespace solution {
 
@@ -18,24 +19,27 @@ std::istream& operator>>(std::istream& is, Range& range) {
 
 class Day2 {
 public:
-    Day2() = default;
+    Day2(const std::string& inputFile) : _inputFile(inputFile) { };
     virtual ~Day2() = default;
 
     virtual void solve() = 0;
+
+protected:
+    std::unique_ptr<std::istream> getInputStream();
+
+private:
+    const std::string _inputFile;
 };
 
 class Day2Part1 : public Day2 {
 public:
-    Day2Part1() = default;
-    ~Day2Part1() override = default;
-
+    Day2Part1(const std::string& inputFile) : Day2(inputFile) { };
     void solve() override { };
 };
 
 class Day2Part2 : public Day2 {
 public:
-    Day2Part2() = default;
-    ~Day2Part2() override = default;
+    Day2Part2(const std::string& inputFile) : Day2(inputFile) { };
     void solve() override { };
 };
 };

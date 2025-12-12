@@ -5,6 +5,8 @@
 #include <optional>
 #include <string>
 
+static constexpr char* INPUT_FILE = "input/input.txt";
+
 enum class Part {
     PART1,
     PART2,
@@ -35,10 +37,10 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<solution::Day2> solver;
     switch (*part) {
     case Part::PART1:
-        solver = std::make_unique<solution::Day2Part1>();
+        solver = std::make_unique<solution::Day2Part1>(INPUT_FILE);
         break;
     case Part::PART2:
-        solver = std::make_unique<solution::Day2Part2>();
+        solver = std::make_unique<solution::Day2Part2>(INPUT_FILE);
         break;
     }
 
