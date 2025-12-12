@@ -17,11 +17,12 @@ public:
     AdditiveIntMod operator-(const int other) const;
 
     /**
-     * Wonky 'unmathematical' operator to determine if operations 'passed' zero
+     * Wonky 'unmathematical' operators to determine if operations 'passed' zero
      * zero.
      */
-    std::strong_ordering operator<=>(const AdditiveIntMod& other) const;
-    std::strong_ordering operator<=>(const int other) const;
+
+    int distanceToZeroMovingLeft();
+    int distanceToZeroMovingRight();
 
     bool operator==(const AdditiveIntMod& other) const;
     bool operator==(const int other) const;

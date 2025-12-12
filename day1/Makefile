@@ -1,4 +1,5 @@
 MAIN=main.cpp
+TEST=test.cpp
 LIB_DIR=lib
 LIB=$(LIB_DIR)/libsolution.a
 
@@ -9,6 +10,9 @@ ARFLAGS=rcs
 
 main: lib
 	$(CC) $(CFLAGS) -o $(MAIN:.cpp=) $(MAIN) -L$(LIB_DIR) -lsolution
+
+test: lib
+	$(CC) $(CFLAGS) -o $(TEST:.cpp=) $(TEST) -L$(LIB_DIR) -lsolution
 
 lib: $(LIB)
 
@@ -22,6 +26,6 @@ $(LIB_DIR)/additive_int_mod.o: $(LIB_DIR)/additive_int_mod.cpp $(LIB_DIR)/additi
 	$(CC) $(CFLAGS) -c $(LIB_DIR)/additive_int_mod.cpp -o $(LIB_DIR)/additive_int_mod.o
 
 clean:
-	rm -f $(LIB_DIR)/*.o $(LIB_DIR)/*.a main
+	rm -f $(LIB_DIR)/*.o $(LIB_DIR)/*.a main test
 
-.PHONY: lib main clean
+.PHONY: lib main test clean

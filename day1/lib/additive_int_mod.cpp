@@ -41,18 +41,18 @@ AdditiveIntMod AdditiveIntMod::operator-(const int other) const {
     return result -= other;
 }
 
-std::strong_ordering AdditiveIntMod::operator<=>(const AdditiveIntMod& other) const {
-    return _value <=> other._value;
-}
-
-std::strong_ordering AdditiveIntMod::operator<=>(const int other) const {
-    return *this <=> AdditiveIntMod(other, _modulus);
-}
-
 bool AdditiveIntMod::operator==(const AdditiveIntMod& other) const {
     return _value == other._value;
 }
 
 bool AdditiveIntMod::operator==(const int other) const {
     return *this == AdditiveIntMod(other, _modulus);
+}
+
+int AdditiveIntMod::distanceToZeroMovingLeft() {
+    return (_value != 0) ? _value : _modulus;
+}
+
+int AdditiveIntMod::distanceToZeroMovingRight() {
+    return _modulus - _value;
 }

@@ -57,20 +57,22 @@ unsigned solution::Day1Part2::rotate(
     AdditiveIntMod& current, const Rotation& rotation) const {
     unsigned count = 0;
 
-    const AdditiveIntMod rotValue = { rotation.value, _modulus };
+    const bool startedAtZero = (current == 0);
+
+    const int rotRemainder = rotation.value % _modulus;
     const int turns = rotation.value / _modulus;
+
     count += turns;
 
-    const AdditiveIntMod before = current;
     bool passedOrEndedAtZero;
     switch (rotation.direction) {
     case Direction::LEFT:
-        current -= rotValue;
-        passedOrEndedAtZero = (current - 1 > before - 1);
+        passedOrEndedAtZero = rotRemainder >= current.distanceToZeroMovingLeft();
+        current -= rotRemainder;
         break;
     case Direction::RIGHT:
-        current += rotValue;
-        passedOrEndedAtZero = (current + 1 < before + 1);
+        passedOrEndedAtZero = rotRemainder >= current.distanceToZeroMovingRight();
+        current += rotRemainder;
         break;
     }
     if (passedOrEndedAtZero) count++;
