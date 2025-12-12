@@ -13,8 +13,7 @@ struct Range {
     int lenTo;
 };
 
-std::unique_ptr<std::istream>& operator>>(
-    std::unique_ptr<std::istream>& is, solution::Range& range);
+std::istream& operator>>(std::istream& is, solution::Range& range);
 
 class Day2 {
 public:
@@ -24,16 +23,14 @@ public:
     virtual long solve() = 0;
 
 protected:
-    std::unique_ptr<std::istream> getInputStream();
-
-private:
+    virtual std::unique_ptr<std::istream> getInputStream();
     const std::string _inputFile;
 };
 
 class Day2Part1 : public Day2 {
 public:
     Day2Part1(const std::string& inputFile) : Day2(inputFile) { };
-    long solve() override { };
+    long solve() override;
 
 private:
     static long computeInvalidSum(const Range& range);
@@ -45,6 +42,6 @@ private:
 class Day2Part2 : public Day2 {
 public:
     Day2Part2(const std::string& inputFile) : Day2(inputFile) { };
-    long solve() override { };
+    long solve() override { return 0; };
 };
 };
