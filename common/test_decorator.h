@@ -23,12 +23,12 @@ namespace aoc {
  *
  * @tparam SolverType The concrete solver class to wrap (must be Solver<T> for some T)
  */
-template <typename SolverType> class TestDecorator : public Solver<bool> {
+template <typename SolverType> class TestDecorator : private SolverType {
     using ResultType = decltype(std::declval<SolverType>().solve());
 
 public:
     explicit TestDecorator(const std::string& inputFile) :
-    Solver<bool>(inputFile), _solver(inputFile), _logPrefix(makeLogPrefix(inputFile)) {
+    SolverType(inputFile), _logPrefix(makeLogPrefix(inputFile)) {
         parseExpectedValue();
     }
 
@@ -36,8 +36,8 @@ public:
      * @brief Solve and verify against expected value.
      * @return true if the result matches expected, false otherwise
      */
-    bool solve() const override {
-        const auto result = _solver.solve();
+    bool test() const {
+        const auto result = SolverType::solve();
         return verifyResult(result);
     }
 
@@ -85,7 +85,6 @@ protected:
     const std::string& logPrefix() const { return _logPrefix; }
 
 private:
-    SolverType _solver;
     std::string _logPrefix;
     ResultType _expected {};
 

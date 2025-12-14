@@ -55,7 +55,7 @@ void runTests(const std::vector<std::string>& testFiles, const std::string& part
     for (const auto& testFile : testFiles) {
         try {
             TestType test(testFile);
-            if (test.solve()) {
+            if (test.test()) {
                 passed++;
             } else {
                 failed++;
