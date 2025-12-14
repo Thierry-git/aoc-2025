@@ -6,26 +6,49 @@ namespace solution {
 // Day3 Implementation
 // ============================================================================
 
-long Day3::solve() const {
+int Day3::solve() const {
     auto input = getInputStream();
 
-    long result = 0;
+    int joltage = 0;
 
-    // TODO: Implement input parsing and processing
-    // Example:
-    //
-    // std::string line;
-    // while (std::getline(*input, line)) {
-    //     result += processItem(line);
-    // }
+    Bank bank;
+    while (std::getline(*input, bank)) joltage += getJoltage(bank);
 
-    return result;
+    return joltage;
 }
 
 // ============================================================================
 // Part-specific overrides
 // ============================================================================
 
-// Add Part1/Part2 specific method implementations here
+Joltage Day3Part1::getJoltage(const Bank& bank) const {
+    if (bank.size() < 2) return 0;
+
+    auto current = bank.cbegin();
+    auto last = --bank.cend();
+
+    Battery first = *current;
+    Battery second = *last;
+
+    ++current;
+    for (; current < last; ++current) {
+        const Battery& battery = *current;
+        if (first < battery) {
+            first = battery;
+            second = *last;
+        } else if (second < battery) {
+            second = battery;
+        }
+    }
+
+    const char concat[2] = { first, second };
+
+    return atoi(concat);
+}
+
+Joltage Day3Part2::getJoltage(const Bank& bank) const {
+    (void)bank;
+    return 0;
+}
 
 } // namespace solution
