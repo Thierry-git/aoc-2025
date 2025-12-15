@@ -7,7 +7,7 @@
 #   make clean  - Remove build artifacts
 
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -pedantic -O2 -I..
+CXXFLAGS = -std=c++26 -Wall -Wextra -Werror -pedantic -O2 -I..
 
 # Executables
 MAIN = main
