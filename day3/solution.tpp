@@ -28,9 +28,10 @@ Joltage Day3Part1<T>::getJoltage(const Bank& bank) const {
         }
     }
 
-    const char concat[2] = { first, second };
+    const char concat[3] = { first, second, '\0' };
+    const Joltage joltage = atoi(concat);
 
-    return atoi(concat);
+    return joltage;
 }
 
 template <typename T>
