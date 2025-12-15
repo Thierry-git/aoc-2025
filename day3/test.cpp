@@ -18,6 +18,8 @@ int main() {
 
     auto part2Tests = discoverTests(INPUT_DIR, R"(part2-test\d+\.txt)");
     runTests<solution::Day3Part2Test>(part2Tests, "Part 2");
+    runTests<TestDecorator<solution::Day3Part2<Day3MultiThread>>>(
+        part2Tests, "Part 2 (Multi-Threaded)");
 
     return EXIT_SUCCESS;
 }

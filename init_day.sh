@@ -31,7 +31,7 @@ mkdir -p "$DAY_DIR/input"
 sed "s/DayX/Day$DAY/g; s/Day X/Day $DAY/g" "$TEMPLATE_DIR/solution.h" > "$DAY_DIR/solution.h"
 sed "s/DayX/Day$DAY/g" "$TEMPLATE_DIR/solution.cpp" > "$DAY_DIR/solution.cpp"
 sed "s/DayX/Day$DAY/g" "$TEMPLATE_DIR/main.cpp" > "$DAY_DIR/main.cpp"
-sed "s/DayX/Day$DAY/g" "$TEMPLATE_DIR/test.cpp" > "$DAY_DIR/test.cpp"
+sed "s/DayX/Day$DAY/g;  s/Day X/Day $DAY/g" "$TEMPLATE_DIR/test.cpp" > "$DAY_DIR/test.cpp"
 cp "$TEMPLATE_DIR/Makefile" "$DAY_DIR/"
 
 # Create placeholder input file
