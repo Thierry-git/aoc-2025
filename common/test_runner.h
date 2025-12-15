@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <filesystem>
 #include <regex>
 #include <string>
@@ -53,6 +54,7 @@ void runTests(const std::vector<std::string>& testFiles, const std::string& part
     int failed = 0;
 
     for (const auto& testFile : testFiles) {
+        const auto start = std::chrono::high_resolution_clock::now();
         try {
             TestType test(testFile);
             if (test.test()) {
@@ -64,6 +66,10 @@ void runTests(const std::vector<std::string>& testFiles, const std::string& part
             std::cerr << "[" << testFile << "] ERROR: " << e.what() << std::endl;
             failed++;
         }
+        const auto end = std::chrono::high_resolution_clock::now();
+        const auto duration
+            = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "    (Finished in " << duration.count() << " μs)" << std::endl;
     }
 
     std::cout << "[" << partName << "] " << passed << " passed, " << failed << " failed\n"
