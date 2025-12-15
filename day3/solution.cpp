@@ -44,7 +44,7 @@ Joltage MultiThreadStrategy::operator()(std::istream& is, JoltageCalculator calc
     Joltage total = 0;
     std::mutex resultMutex;
 
-    size_t lower = 0, upper = 0;
+    size_t lower = 0, upper = banksSize;
     for (unsigned i = 0; i < numThreads; ++i, lower = upper, upper += banksSize) {
         threads.emplace_back(
             [&banks, &total, &resultMutex, &calc, lower, upper, numThreads, banksSize]() {
