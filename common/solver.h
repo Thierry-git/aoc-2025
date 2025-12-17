@@ -33,19 +33,6 @@ public:
      */
     virtual ResultType solve() const = 0;
 
-    const std::string& inputFile() const { return _inputFile; }
-
-protected:
-    /**
-     * @brief Get a path to a file containing raw puzzle data.
-     *
-     * Overridden for custom input handling (e.g., for tests).
-     * All other input access methods are built on top of this.
-     *
-     * @return Path to a file containing only puzzle data
-     */
-    virtual std::string getDataFilePath() const { return _inputFile; }
-
     /**
      * @brief Get an input stream for reading the puzzle input.
      * @return Unique pointer to an input stream
@@ -78,6 +65,18 @@ protected:
         return fd;
     }
 
+protected:
+    /**
+     * @brief Get a path to a file containing raw puzzle data.
+     *
+     * Overridden for custom input handling (e.g., for tests).
+     * All other input access methods are built on top of this.
+     *
+     * @return Path to a file containing only puzzle data
+     */
+    virtual std::string getDataFilePath() const { return _inputFile; }
+
+protected:
     const std::string _inputFile;
 };
 

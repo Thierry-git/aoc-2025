@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace aoc {
 
@@ -123,9 +124,7 @@ private:
 
     void parseExpectedValue() {
         std::ifstream file(this->_inputFile);
-        if (!file) {
-            throw std::runtime_error("Cannot open test file: " + this->_inputFile);
-        }
+        if (!file) throw std::runtime_error("Cannot open test file: " + this->_inputFile);
 
         std::string line;
         std::getline(file, line); // EXPECTED
