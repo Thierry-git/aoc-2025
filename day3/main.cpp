@@ -4,6 +4,9 @@
 #include <memory>
 #include <optional>
 
+using Part1Solution = solution::Day3Part1<solution::SingleThreadStrategy>;
+using Part2Solution = solution::Day3Part2<solution::SingleThreadStrategy>;
+
 static constexpr const char* INPUT_FILE = "input/input.txt";
 
 enum class Part { PART1, PART2 };
@@ -34,10 +37,10 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<solution::Day3> solver;
     switch (*part) {
     case Part::PART1:
-        solver = std::make_unique<solution::Day3Part1>(INPUT_FILE);
+        solver = std::make_unique<Part1Solution>(INPUT_FILE);
         break;
     case Part::PART2:
-        solver = std::make_unique<solution::Day3Part2>(INPUT_FILE);
+        solver = std::make_unique<Part2Solution>(INPUT_FILE);
         break;
     }
 
