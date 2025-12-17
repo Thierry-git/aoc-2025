@@ -15,7 +15,7 @@ namespace solution {
 
 using Battery = char;
 using Bank = std::basic_string<Battery>;
-using Joltage = int;
+using Joltage = long;
 using JoltageCalculator = std::function<Joltage(const Bank&)>;
 
 /**
