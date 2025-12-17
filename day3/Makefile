@@ -33,7 +33,7 @@ $(TEST): $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 # Generic compilation rule
-%.o: %.cpp solution.h
+%.o: %.cpp solution.h solution.tpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Run targets
