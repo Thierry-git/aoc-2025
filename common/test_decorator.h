@@ -2,7 +2,11 @@
 
 #include "solver.h"
 
+#include <unistd.h>
+
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -21,6 +25,9 @@ namespace aoc {
  * The TestDecorator intercepts getInputStream() to skip the header lines,
  * parses the expected value, and verifies the result after solve().
  *
+ * For file-based access (e.g., mmap), getDataFilePath() creates a temporary
+ * file containing only the data portion.
+ *
  * @tparam SolverType The concrete solver class to wrap (must be Solver<T> for some T)
  */
 template <typename SolverType> class TestDecorator : private SolverType {
@@ -30,6 +37,31 @@ public:
     explicit TestDecorator(const std::string& inputFile) :
     SolverType(inputFile), _logPrefix(makeLogPrefix(inputFile)) {
         parseExpectedValue();
+    }
+
+    ~TestDecorator() { cleanupTempFile(); }
+
+    // Disable copy (temp file ownership)
+    TestDecorator(const TestDecorator&) = delete;
+    TestDecorator& operator=(const TestDecorator&) = delete;
+
+    // Enable move
+    TestDecorator(TestDecorator&& other) noexcept :
+    SolverType(std::move(other)), _logPrefix(std::move(other._logPrefix)),
+    _expected(std::move(other._expected)), _tempDataFile(std::move(other._tempDataFile)) {
+        other._tempDataFile.clear();
+    }
+
+    TestDecorator& operator=(TestDecorator&& other) noexcept {
+        if (this != &other) {
+            cleanupTempFile();
+            SolverType::operator=(std::move(other));
+            _logPrefix = std::move(other._logPrefix);
+            _expected = std::move(other._expected);
+            _tempDataFile = std::move(other._tempDataFile);
+            other._tempDataFile.clear();
+        }
+        return *this;
     }
 
     /**
@@ -45,24 +77,18 @@ public:
 
 protected:
     /**
-     * @brief Get input stream, skipping the test file header.
+     * @brief Get path to a file containing only the data portion.
      *
-     * Override for different header parsing behavior.
+     * Creates a temporary file on first call, stripping the test header.
+     * The temp file is cleaned up when the TestDecorator is destroyed.
      *
-     * @return Input stream positioned after the DATA line
+     * @return Path to temporary file with raw puzzle data
      */
-    std::unique_ptr<std::istream> getInputStream() const override {
-        auto input = std::make_unique<std::ifstream>(this->_inputFile);
-        if (!input || !*input) {
-            throw std::runtime_error("Cannot open test file: " + this->_inputFile);
+    std::string getDataFilePath() const override {
+        if (_tempDataFile.empty()) {
+            _tempDataFile = createTempDataFile();
         }
-
-        std::string line;
-        std::getline(*input, line); // EXPECTED
-        std::getline(*input, line); // (expected value)
-        std::getline(*input, line); // DATA
-
-        return input;
+        return _tempDataFile;
     }
 
     /**
@@ -87,6 +113,7 @@ protected:
 private:
     std::string _logPrefix;
     ResultType _expected {};
+    mutable std::string _tempDataFile;
 
     static std::string makeLogPrefix(const std::string& inputFile) {
         std::string prefix = "[" + inputFile + "]";
@@ -106,6 +133,55 @@ private:
 
         std::istringstream iss(line);
         iss >> _expected;
+    }
+
+    /**
+     * @brief Create a temporary file containing only the data portion.
+     * @return Path to the created temporary file
+     */
+    std::string createTempDataFile() const {
+        std::string tempTemplate = "/tmp/aoc-test-XXXXXX";
+        std::vector<char> tempPath(tempTemplate.begin(), tempTemplate.end());
+        tempPath.push_back('\0');
+
+        int fd = mkstemp(tempPath.data());
+        if (fd < 0) {
+            throw std::runtime_error(
+                "Cannot create temp file: " + std::string(std::strerror(errno)));
+        }
+
+        // Open source and skip header
+        std::ifstream src(this->_inputFile, std::ios::binary);
+        if (!src) {
+            close(fd);
+            unlink(tempPath.data());
+            throw std::runtime_error("Cannot open test file: " + this->_inputFile);
+        }
+
+        std::string line;
+        std::getline(src, line); // EXPECTED
+        std::getline(src, line); // (expected value)
+        std::getline(src, line); // DATA
+
+        std::ostringstream buffer;
+        buffer << src.rdbuf();
+        std::string data = buffer.str();
+
+        if (write(fd, data.data(), data.size()) < 0) {
+            close(fd);
+            unlink(tempPath.data());
+            throw std::runtime_error("Cannot write to temp file");
+        }
+
+        close(fd);
+        return std::string(tempPath.data());
+    }
+
+    void cleanupTempFile() {
+        if (!_tempDataFile.empty()) {
+            unlink(_tempDataFile.c_str());
+            _tempDataFile.clear();
+        }
     }
 };
 

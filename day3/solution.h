@@ -44,6 +44,19 @@ class MultiThreadStrategy : public ThreadingStrategy {
 public:
     static std::shared_ptr<const ThreadingStrategy> get();
     Joltage operator()(std::istream& is, JoltageCalculator calc) const override;
+
+private:
+    class JoltageMonitor {
+    public:
+        JoltageMonitor(const Joltage joltage) : joltage_(joltage) { }
+
+        Joltage get() const;
+        void incrementBy(const Joltage joltage);
+
+    private:
+        Joltage joltage_;
+        std::mutex mtx;
+    };
 };
 
 /**

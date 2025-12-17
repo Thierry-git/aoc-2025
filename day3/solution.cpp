@@ -31,6 +31,7 @@ std::shared_ptr<const ThreadingStrategy> MultiThreadStrategy::get() {
 Joltage MultiThreadStrategy::operator()(std::istream& is, JoltageCalculator calc) const {
     std::vector<Bank> banks;
     Bank bank;
+
     while (std::getline(is, bank)) banks.push_back(bank);
     if (banks.empty()) return 0;
 
@@ -41,27 +42,34 @@ Joltage MultiThreadStrategy::operator()(std::istream& is, JoltageCalculator calc
     std::vector<std::jthread> threads;
     threads.reserve(numThreads);
 
-    Joltage total = 0;
-    std::mutex resultMutex;
+    JoltageMonitor joltage = 0;
 
     size_t lower = 0, upper = banksSize;
     for (unsigned i = 0; i < numThreads; ++i, lower = upper, upper += banksSize) {
         threads.emplace_back(
-            [&banks, &total, &resultMutex, &calc, lower, upper, numThreads, banksSize]() {
+            [&banks, &joltage, &calc, lower, upper, numThreads, banksSize]() {
                 const size_t start = lower / numThreads;
                 const size_t end = upper / numThreads;
 
-                Joltage localSum = 0;
-                for (size_t j = start; j < end; ++j) localSum += calc(banks[j]);
+                Joltage threadJoltage = 0;
+                for (size_t j = start; j < end; ++j) threadJoltage += calc(banks[j]);
 
-                const std::lock_guard<std::mutex> lock(resultMutex);
-                total += localSum;
+                joltage.incrementBy(threadJoltage);
             });
     }
 
     threads.clear();
 
-    return total;
+    return joltage.get();
+}
+
+Joltage MultiThreadStrategy::JoltageMonitor::get() const {
+    return joltage_;
+}
+
+void MultiThreadStrategy::JoltageMonitor::incrementBy(const Joltage joltage) {
+    std::lock_guard<std::mutex> lock(mtx);
+    joltage_ += joltage;
 }
 
 // ============================================================================
