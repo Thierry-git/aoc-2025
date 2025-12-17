@@ -6,9 +6,9 @@
 
 namespace solution {
 
-template <typename T>
-    requires std::derived_from<T, Day3>
-Joltage Day3Part1<T>::getJoltage(const Bank& bank) const {
+template <typename Strat>
+    requires std::derived_from<Strat, ThreadingStrategy>
+Joltage Day3Part1<Strat>::getJoltage(const Bank& bank) const {
     if (bank.size() < 2) return 0;
 
     auto current = bank.cbegin();
@@ -34,9 +34,9 @@ Joltage Day3Part1<T>::getJoltage(const Bank& bank) const {
     return joltage;
 }
 
-template <typename T>
-    requires std::derived_from<T, Day3>
-Joltage Day3Part2<T>::getJoltage(const Bank& bank) const {
+template <typename Strat>
+    requires std::derived_from<Strat, ThreadingStrategy>
+Joltage Day3Part2<Strat>::getJoltage(const Bank& bank) const {
     (void)bank;
     return 0;
 }

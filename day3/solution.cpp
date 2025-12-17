@@ -1,61 +1,117 @@
 #include "solution.h"
 
+#include <fcntl.h>
 #include <iostream>
 #include <mutex>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <thread>
+#include <unistd.h>
 #include <vector>
 
 namespace solution {
+
+InputManager::InputManager(const int fd) {
+    struct stat sb;
+    if (fstat(fd, &sb) < 0) {
+        close(fd);
+        throw std::system_error();
+    }
+
+    fileSize_ = sb.st_size;
+
+    if (fileSize_ == 0) {
+        mapped_ = nullptr;
+        digitsPerLine_ = 0;
+        numThreads_ = 0;
+        bytesPerThread_ = 0;
+        return;
+    }
+
+    mapped_ = (char*)mmap(nullptr, fileSize_, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd);
+    if (mapped_ == MAP_FAILED) throw std::system_error();
+
+    data_ = { mapped_, fileSize_ };
+    digitsPerLine_ = data_.find('\n');
+    if (digitsPerLine_ == std::string_view::npos) digitsPerLine_ = fileSize_;
+    if (digitsPerLine_ == 0) {
+        numThreads_ = 0;
+        bytesPerThread_ = 0;
+        return;
+    }
+
+    const size_t bytesPerLine = digitsPerLine_ + 1;
+    const size_t numLines = fileSize_ / bytesPerLine;
+
+    if (numLines == 0) {
+        numThreads_ = 0;
+        bytesPerThread_ = 0;
+        return;
+    }
+
+    numThreads_ = std::min((size_t)std::thread::hardware_concurrency(), numLines);
+    const size_t linesPerThread = (numLines + numThreads_ - 1) / numThreads_;
+    bytesPerThread_ = linesPerThread * bytesPerLine;
+}
+
+InputManager::~InputManager() {
+    if (mapped_) munmap(mapped_, fileSize_);
+}
+
+InputManager::BankIterator InputManager::banksOfNextThread() {
+    std::lock_guard<std::mutex> lock(mtx_);
+    if (nextThread_ >= numThreads_)
+        throw std::range_error("All threads have already been dispatched");
+
+    const size_t start = nextThread_ * bytesPerThread_;
+    const size_t end = std::min(start + bytesPerThread_, fileSize_);
+    nextThread_++;
+
+    return { data_, start, end, digitsPerLine_ };
+}
+
+bool InputManager::BankIterator::operator>>(Bank& bank) {
+    if (pos_ >= end_) return false;
+
+    const size_t bytesPerLine = digitsPerLine_ + 1;
+
+    bank = Bank(data_.substr(pos_, digitsPerLine_));
+    pos_ += bytesPerLine;
+    return true;
+}
 
 // ============================================================================
 // Threading Strategies
 // ============================================================================
 
-std::shared_ptr<const ThreadingStrategy> SingleThreadStrategy::get() {
-    static auto instance = std::make_shared<const SingleThreadStrategy>();
-    return instance;
-}
-
-Joltage SingleThreadStrategy::operator()(std::istream& is, JoltageCalculator calc) const {
+Joltage SingleThreadStrategy::operator()(const JoltageCalculator& calc) const {
+    std::unique_ptr<std::istream> is = solver_->getInputStream();
     Joltage total = 0;
     Bank bank;
-    while (std::getline(is, bank)) total += calc(bank);
+    while (std::getline(*is, bank)) total += calc(bank);
     return total;
 }
 
-std::shared_ptr<const ThreadingStrategy> MultiThreadStrategy::get() {
-    static auto instance = std::make_shared<const MultiThreadStrategy>();
-    return instance;
-}
-
-Joltage MultiThreadStrategy::operator()(std::istream& is, JoltageCalculator calc) const {
-    std::vector<Bank> banks;
-    Bank bank;
-
-    while (std::getline(is, bank)) banks.push_back(bank);
-    if (banks.empty()) return 0;
-
-    const size_t banksSize = banks.size();
-    const unsigned numThreads
-        = std::min(std::thread::hardware_concurrency(), static_cast<unsigned>(banksSize));
-
-    std::vector<std::jthread> threads;
-    threads.reserve(numThreads);
-
+Joltage MultiThreadStrategy::operator()(const JoltageCalculator& calc) const {
+    InputManager input = solver_->getFileDescriptor();
+    if (input.numThreads() == 0) return 0;
     JoltageMonitor joltage = 0;
 
-    size_t lower = 0, upper = banksSize;
-    for (unsigned i = 0; i < numThreads; ++i, lower = upper, upper += banksSize) {
-        threads.emplace_back(
-            [&banks, &joltage, &calc, lower, upper, numThreads, banksSize]() {
-                const size_t start = lower / numThreads;
-                const size_t end = upper / numThreads;
+    std::vector<std::jthread> threads;
+    threads.reserve(std::thread::hardware_concurrency());
 
-                Joltage threadJoltage = 0;
-                for (size_t j = start; j < end; ++j) threadJoltage += calc(banks[j]);
+    const unsigned numThreads = input.numThreads();
+    for (unsigned i = 0; i < numThreads; i++) {
+        threads.emplace_back([&]() {
+            Joltage threadJoltage = 0;
+            InputManager::BankIterator banks = input.banksOfNextThread();
+            Bank bank;
 
-                joltage.incrementBy(threadJoltage);
-            });
+            while (banks >> bank) threadJoltage += calc(bank);
+
+            joltage.incrementBy(threadJoltage);
+        });
     }
 
     threads.clear();
@@ -77,8 +133,8 @@ void MultiThreadStrategy::JoltageMonitor::incrementBy(const Joltage joltage) {
 // ============================================================================
 
 Joltage Day3::solve() const {
-    auto input = getInputStream();
-    return (*strategy_)(*input, [this](const Bank& b) { return getJoltage(b); });
+    const JoltageCalculator calc = [this](const Bank& b) { return getJoltage(b); };
+    return (*strategy_)(calc);
 }
 
 } // namespace solution
