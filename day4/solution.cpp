@@ -44,37 +44,37 @@ void SinglePassAlgorithm::init() {
 void SinglePassAlgorithm::operator()(
     const int fd, const off_t length, const off_t offset) {
     (void)length;
-    static off_t LINE_SIZE = 0;
-    if (LINE_SIZE == 0) {
-        static constexpr int BUFFER_SIZE = 1024;
-        char buffer[BUFFER_SIZE];
-        off_t pos = 0;
-        ssize_t bytes_read;
+    off_t LINE_SIZE = 0;
+    static constexpr int BUFFER_SIZE = 1024;
+    char buffer[BUFFER_SIZE];
+    off_t pos = 0;
+    ssize_t bytes_read;
 
-        while (LINE_SIZE == 0 && (bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
-            for (ssize_t i = 0; i < bytes_read; i++) {
-                if (buffer[i] == '\n') {
-                    LINE_SIZE = pos + i + 1;
-                    lseek(fd, offset, SEEK_SET);
-                    break;
-                }
+    while (LINE_SIZE == 0 && (bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
+        for (ssize_t i = 0; i < bytes_read; i++) {
+            if (buffer[i] == '\n') {
+                LINE_SIZE = pos + i + 1;
+                lseek(fd, offset, SEEK_SET);
+                break;
             }
-            pos += bytes_read;
         }
+        pos += bytes_read;
     }
+    if (LINE_SIZE == 0) return;
 
-    static const off_t CHARS_PER_LINE = LINE_SIZE - 1;
-    static const off_t BUFFER_SIZE = CHARS_PER_LINE + 2;
+    const off_t CHARS_PER_LINE = LINE_SIZE - 1;
+    const off_t COUNTING_BUFFER_SIZE = CHARS_PER_LINE + 2;
     static constexpr int NUM_BUFFERS = 4;
     std::string buffers[NUM_BUFFERS];
-    for (int i = 0; i < NUM_BUFFERS; i++) buffers[i].assign(BUFFER_SIZE, EMPTY_SPACE);
+    for (int i = 0; i < NUM_BUFFERS; i++)
+        buffers[i].assign(COUNTING_BUFFER_SIZE, EMPTY_SPACE);
     while (CHARS_PER_LINE == read(fd, &buffers[NUM_BUFFERS - 1][1], CHARS_PER_LINE)) {
         lseek(fd, 1, SEEK_CUR);
         for (int i = 0; i < 3; i++) buffers[i].swap(buffers[i + 1]);
         countMiddleRow(buffers);
     }
     for (int i = 0; i < 2; i++) buffers[i].swap(buffers[i + 1]);
-    buffers[2].assign(BUFFER_SIZE, EMPTY_SPACE);
+    buffers[2].assign(COUNTING_BUFFER_SIZE, EMPTY_SPACE);
     countMiddleRow(buffers);
 }
 
