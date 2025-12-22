@@ -40,7 +40,6 @@ x.x.@@@.x.
 
 Consider your complete diagram of the paper roll locations. How many rolls of paper can be accessed by a forklift?
 
-The first half of this puzzle is complete! It provides one gold star: \*
 --- Part Two ---
 
 Now, the Elves just need help accessing as much of the paper as they can.
