@@ -11,6 +11,10 @@ namespace solution {
 class PrintingDepartmentDispatcher;
 class PrintingDepartmentAlgorithm;
 
+constexpr char PAPER_ROLL = '@';
+constexpr char EMPTY_SPACE = '.';
+constexpr int UPPER_BOUND_OF_ACCESSIBILITY = 4;
+
 /**
  * @brief Base class for Day 4.
  *
@@ -72,23 +76,43 @@ public:
     virtual void init() = 0;
     virtual void operator()(const int fd, const off_t length, const off_t offset = 0) = 0;
     virtual int result() const = 0;
-
-protected:
-    static constexpr char PAPER_ROLL = '@';
-    static constexpr char EMPTY_SPACE = '.';
 };
 
-class SinglePassAlgorithm : PrintingDepartmentAlgorithm {
+class BaseAlgorithm : PrintingDepartmentAlgorithm {
 public:
     virtual void init() override;
     virtual void operator()(
-        const int fd, const off_t length, const off_t offset) override;
+        const int fd, const off_t length, const off_t offset = 0) override;
     virtual int result() const override;
 
-private:
-    int result_;
+protected:
+    virtual void execute(const int fd, const off_t charsPerLine) = 0;
+    virtual void markAccessiblePaperRoll(std::string::iterator& paperRoll);
 
-    void countMiddleRow(const std::string* buffers);
+    static bool isPaperRoll(const std::string::const_iterator& element);
+
+private:
+    int result_ = 0;
+};
+
+class SinglePassAlgorithm : BaseAlgorithm {
+protected:
+    virtual void execute(const int fd, const off_t charsPerLine) override;
+
+private:
+    void countMiddleRow(std::string* buffers);
+};
+
+class InPlaceDeleteToStability : BaseAlgorithm {
+protected:
+    virtual void execute(const int fd, const off_t charsPerLine) override;
+    virtual void markAccessiblePaperRoll(std::string::iterator& paperRoll) override;
+
+private:
+    static constexpr char ACCESSIBLE_PAPER_ROLL = 'x';
+
+    bool countRowInplace(const int rowIndex, const std::vector<std::string>& rows,
+        std::vector<std::string>& copy);
 };
 
 }; // namespace solution
