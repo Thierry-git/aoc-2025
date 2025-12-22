@@ -86,7 +86,7 @@ Result FreshnessDatabase::sumRangeLengths() const {
 
     return ranges::fold_left(
         freshRanges_, 0, [](const Result acc, const IngredientRange& freshRange) {
-            return acc + (freshRange.to - freshRange.from);
+            return acc + (freshRange.to - freshRange.from) + 1;
         });
 }
 
