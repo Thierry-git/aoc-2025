@@ -2,6 +2,9 @@
 
 #include "../common/aoc.h"
 
+#include <istream>
+#include <vector>
+
 namespace solution {
 
 // ============================================================================
@@ -10,10 +13,29 @@ namespace solution {
 
 using Result = int;
 using Ingredient = long;
+using Ingredients = std::vector<Ingredient>;
 template <typename T> struct Range {
     T from;
     T to;
 };
+using IngredientRange = Range<Ingredient>;
+
+class FreshnessDatabase {
+public:
+    FreshnessDatabase();
+
+    friend std::istream& operator>>(std::istream& is, FreshnessDatabase& freshDatabase);
+
+    Result countFresh(const Ingredients& ingredients) const;
+
+private:
+    static constexpr size_t RESERVE_RANGE_NUM = 100;
+    std::vector<IngredientRange> freshRanges_;
+
+    void push_back(const IngredientRange& freshRange);
+};
+
+std::istream& operator>>(std::istream& is, Ingredients& ingredients);
 
 /**
  * @brief Base class for Day 5.
@@ -27,13 +49,6 @@ public:
     Result solve() const override;
 
 protected:
-    // TODO: Add shared helper methods here
-
-    /**
-     * @brief Process a single item from the input.
-     * Override in Part1/Part2 with different logic.
-     */
-    // virtual long processItem(...) const = 0;
 };
 
 class Day5Part1 : public Day5 {
@@ -41,7 +56,6 @@ public:
     explicit Day5Part1(const std::string& inputFile) : Day5(inputFile) { }
 
 protected:
-    // TODO: Override methods as needed
 };
 
 class Day5Part2 : public Day5 {
@@ -49,7 +63,6 @@ public:
     explicit Day5Part2(const std::string& inputFile) : Day5(inputFile) { }
 
 protected:
-    // TODO: Override methods as needed
 };
 
 using Day5Part1Test = aoc::TestDecorator<Day5Part1>;
