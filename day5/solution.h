@@ -48,7 +48,7 @@ class Day5 : public aoc::Solver<Result> {
 public:
     explicit Day5(const std::string& inputFile) : Solver(inputFile) { }
 
-    Result solve() const override;
+    virtual Result solve() const = 0;
 
 protected:
 };
@@ -57,12 +57,16 @@ class Day5Part1 : public Day5 {
 public:
     explicit Day5Part1(const std::string& inputFile) : Day5(inputFile) { }
 
+    virtual Result solve() const override;
+
 protected:
 };
 
 class Day5Part2 : public Day5 {
 public:
     explicit Day5Part2(const std::string& inputFile) : Day5(inputFile) { }
+
+    virtual Result solve() const override;
 
 protected:
 };

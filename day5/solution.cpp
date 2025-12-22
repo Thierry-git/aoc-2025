@@ -10,7 +10,7 @@ namespace solution {
 // Day5 Implementation
 // ============================================================================
 
-Result Day5::solve() const {
+Result Day5Part1::solve() const {
     static constexpr size_t RESERVE_INGREDIENT_NUM = 200;
     auto input = getInputStream();
 
@@ -20,6 +20,10 @@ Result Day5::solve() const {
     *input >> freshDatabase >> ingredients;
 
     return freshDatabase.countFresh(ingredients);
+}
+
+Result Day5Part2::solve() const {
+    return 0;
 }
 
 // ============================================================================
