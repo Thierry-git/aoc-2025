@@ -14,16 +14,33 @@ Result Day5Part1::solve() const {
     static constexpr size_t RESERVE_INGREDIENT_NUM = 200;
     auto input = getInputStream();
 
-    FreshnessDatabase freshDatabase;
+    std::unique_ptr<FreshnessDatabase> freshDatabase = createDatabase();
     Ingredients ingredients;
     ingredients.reserve(RESERVE_INGREDIENT_NUM);
-    *input >> freshDatabase >> ingredients;
+    *input >> *freshDatabase >> ingredients;
 
-    return freshDatabase.countFresh(ingredients);
+    return freshDatabase->countFresh(ingredients);
+}
+
+std::unique_ptr<FreshnessDatabase> Day5Part1::createDatabase() const {
+    std::unique_ptr<FreshnessDatabase> database = std::make_unique<FreshnessDatabase>();
+    database->setPushBackStrategy(std::make_unique<PushBackEverything>());
+    return database;
 }
 
 Result Day5Part2::solve() const {
-    return 0;
+    auto input = getInputStream();
+
+    std::unique_ptr<FreshnessDatabase> freshDatabase = createDatabase();
+    *input >> *freshDatabase;
+
+    return freshDatabase->sumRangeLengths();
+}
+
+std::unique_ptr<FreshnessDatabase> Day5Part2::createDatabase() const {
+    std::unique_ptr<FreshnessDatabase> database = std::make_unique<FreshnessDatabase>();
+    database->setPushBackStrategy(std::make_unique<CombineOnPushBack>());
+    return database;
 }
 
 // ============================================================================
@@ -32,10 +49,6 @@ Result Day5Part2::solve() const {
 
 FreshnessDatabase::FreshnessDatabase() {
     freshRanges_.reserve(RESERVE_RANGE_NUM);
-}
-
-void FreshnessDatabase::push_back(const IngredientRange& freshRange) {
-    freshRanges_.push_back(freshRange);
 }
 
 /**
@@ -66,6 +79,37 @@ Result FreshnessDatabase::countFresh(const Ingredients& ingredients) const {
         if (isFresh) result++;
     });
     return result;
+}
+
+Result FreshnessDatabase::sumRangeLengths() const {
+    namespace ranges = std::ranges;
+
+    return ranges::fold_left(
+        freshRanges_, 0, [](const Result acc, const IngredientRange& freshRange) {
+            return acc + (freshRange.to - freshRange.from);
+        });
+}
+
+void FreshnessDatabase::push_back(const IngredientRange& freshRange) {
+    (*strategy_)(freshRanges_, freshRange);
+}
+
+void FreshnessDatabase::setPushBackStrategy(std::unique_ptr<PushBackStrategy> strategy) {
+    strategy_ = std::move(strategy);
+}
+
+// ============================================================================
+// PushBackStrategy
+// ============================================================================
+
+void PushBackEverything::operator()(
+    std::vector<IngredientRange>& freshRanges, const IngredientRange& freshRange) const {
+    freshRanges.push_back(freshRange);
+}
+
+void CombineOnPushBack::operator()(
+    std::vector<IngredientRange>& freshRanges, const IngredientRange& freshRange) const {
+    freshRanges.push_back(freshRange);
 }
 
 // ============================================================================

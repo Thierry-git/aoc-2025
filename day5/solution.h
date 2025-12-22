@@ -3,6 +3,7 @@
 #include "../common/aoc.h"
 
 #include <iostream>
+#include <memory>
 #include <vector>
 
 namespace solution {
@@ -20,17 +21,41 @@ template <typename T> struct Range {
 };
 using IngredientRange = Range<Ingredient>;
 
+class PushBackStrategy {
+public:
+    virtual void operator()(std::vector<IngredientRange>& freshRanges,
+        const IngredientRange& freshRange) const
+        = 0;
+};
+
+class PushBackEverything : public PushBackStrategy {
+public:
+    virtual void operator()(std::vector<IngredientRange>& freshRanges,
+        const IngredientRange& freshRange) const override;
+};
+
+class CombineOnPushBack : public PushBackStrategy {
+public:
+    virtual void operator()(std::vector<IngredientRange>& freshRanges,
+        const IngredientRange& freshRange) const override;
+};
+
 class FreshnessDatabase {
 public:
     FreshnessDatabase();
+    virtual ~FreshnessDatabase() = default;
 
     friend std::istream& operator>>(std::istream& is, FreshnessDatabase& freshDatabase);
 
     Result countFresh(const Ingredients& ingredients) const;
+    Result sumRangeLengths() const;
+
+    void setPushBackStrategy(std::unique_ptr<PushBackStrategy> strategy);
 
 private:
     static constexpr size_t RESERVE_RANGE_NUM = 100;
     std::vector<IngredientRange> freshRanges_;
+    std::unique_ptr<PushBackStrategy> strategy_;
 
     void push_back(const IngredientRange& freshRange);
 };
@@ -51,6 +76,7 @@ public:
     virtual Result solve() const = 0;
 
 protected:
+    virtual std::unique_ptr<FreshnessDatabase> createDatabase() const = 0;
 };
 
 class Day5Part1 : public Day5 {
@@ -60,6 +86,7 @@ public:
     virtual Result solve() const override;
 
 protected:
+    virtual std::unique_ptr<FreshnessDatabase> createDatabase() const override;
 };
 
 class Day5Part2 : public Day5 {
@@ -69,6 +96,7 @@ public:
     virtual Result solve() const override;
 
 protected:
+    virtual std::unique_ptr<FreshnessDatabase> createDatabase() const override;
 };
 
 using Day5Part1Test = aoc::TestDecorator<Day5Part1>;
