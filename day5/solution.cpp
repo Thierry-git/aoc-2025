@@ -1,6 +1,8 @@
 #include "solution.h"
 
+#include <iostream>
 #include <ranges>
+#include <sstream>
 
 namespace solution {
 
@@ -34,13 +36,14 @@ void FreshnessDatabase::push_back(const IngredientRange& freshRange) {
  * after the empty line).
  */
 std::istream& operator>>(std::istream& is, FreshnessDatabase& freshDatabase) {
-    IngredientRange freshRange;
-    char dash;
-    while (is >> freshRange.from >> dash >> freshRange.to) {
-        freshDatabase.push_back(freshRange);
+    std::string line;
+    while (std::getline(is, line) && !line.empty()) {
+        std::istringstream lineStream(line);
+        IngredientRange freshRange;
+        char dash;
+        if (lineStream >> freshRange.from >> dash >> freshRange.to)
+            freshDatabase.push_back(freshRange);
     }
-    is.clear();
-    is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     return is;
 }
 
@@ -70,5 +73,9 @@ std::istream& operator>>(std::istream& is, Ingredients& ingredients) {
     while (is >> ingredient) ingredients.push_back(ingredient);
     return is;
 };
+
+std::ostream& operator<<(std::ostream& os, const IngredientRange& freshRange) {
+    return os << "    from: " << freshRange.from << "\n    to: " << freshRange.to;
+}
 
 } // namespace solution

@@ -2,7 +2,7 @@
 
 #include "../common/aoc.h"
 
-#include <istream>
+#include <iostream>
 #include <vector>
 
 namespace solution {
@@ -36,6 +36,8 @@ private:
 };
 
 std::istream& operator>>(std::istream& is, Ingredients& ingredients);
+
+std::ostream& operator<<(std::ostream& os, const IngredientRange& freshRange);
 
 /**
  * @brief Base class for Day 5.
