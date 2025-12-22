@@ -6,10 +6,10 @@ namespace solution {
 // DayX Implementation
 // ============================================================================
 
-long DayX::solve() const {
+Result DayX::solve() const {
     auto input = getInputStream();
 
-    long result = 0;
+    Result result = 0;
 
     // TODO: Implement input parsing and processing
     // Example:

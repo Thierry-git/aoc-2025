@@ -8,16 +8,18 @@ namespace solution {
 // Day X Solution
 // ============================================================================
 
+using Result = long;
+
 /**
  * @brief Base class for Day X.
  *
  * Contains shared logic between Part1 and Part2.
  */
-class DayX : public aoc::Solver<long> {
+class DayX : public aoc::Solver<Result> {
 public:
     explicit DayX(const std::string& inputFile) : Solver(inputFile) { }
 
-    long solve() const override;
+    Result solve() const override;
 
 protected:
     // TODO: Add shared helper methods here

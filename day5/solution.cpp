@@ -6,10 +6,10 @@ namespace solution {
 // Day5 Implementation
 // ============================================================================
 
-long Day5::solve() const {
+Result Day5::solve() const {
     auto input = getInputStream();
 
-    long result = 0;
+    Result result = 0;
 
     // TODO: Implement input parsing and processing
     // Example:

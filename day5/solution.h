@@ -8,16 +8,23 @@ namespace solution {
 // Day 5 Solution
 // ============================================================================
 
+using Result = int;
+using Ingredient = long;
+template <typename T> struct Range {
+    T from;
+    T to;
+};
+
 /**
  * @brief Base class for Day 5.
  *
  * Contains shared logic between Part1 and Part2.
  */
-class Day5 : public aoc::Solver<long> {
+class Day5 : public aoc::Solver<Result> {
 public:
     explicit Day5(const std::string& inputFile) : Solver(inputFile) { }
 
-    long solve() const override;
+    Result solve() const override;
 
 protected:
     // TODO: Add shared helper methods here
@@ -47,5 +54,4 @@ protected:
 
 using Day5Part1Test = aoc::TestDecorator<Day5Part1>;
 using Day5Part2Test = aoc::TestDecorator<Day5Part2>;
-
 }; // namespace solution
