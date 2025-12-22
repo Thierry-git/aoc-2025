@@ -31,6 +31,8 @@ public:
     }
 
 protected:
+    virtual std::unique_ptr<PrintingDepartmentAlgorithm> getAlgo() const = 0;
+
 private:
     std::unique_ptr<PrintingDepartmentDispatcher> departmentReader_;
 };
@@ -40,6 +42,7 @@ public:
     explicit Day4Part1(const std::string& inputFile) : Day4(inputFile) { }
 
 protected:
+    virtual std::unique_ptr<PrintingDepartmentAlgorithm> getAlgo() const override;
 };
 
 class Day4Part2 : public Day4 {
@@ -47,6 +50,7 @@ public:
     explicit Day4Part2(const std::string& inputFile) : Day4(inputFile) { }
 
 protected:
+    virtual std::unique_ptr<PrintingDepartmentAlgorithm> getAlgo() const override;
 };
 
 using Day4Part1Test = aoc::TestDecorator<Day4Part1>;
@@ -56,14 +60,17 @@ using Day4Part2Test = aoc::TestDecorator<Day4Part2>;
 
 class PrintingDepartmentDispatcher {
 public:
-    virtual void executeOnDepartment(PrintingDepartmentAlgorithm* algo) const = 0;
+    virtual void executeOnDepartment(
+        std::unique_ptr<PrintingDepartmentAlgorithm>& algo) const
+        = 0;
 };
 
 class SingleThreadedDispatcher : public PrintingDepartmentDispatcher {
 public:
     SingleThreadedDispatcher(const Day4* solver) : solver_(solver) { }
 
-    virtual void executeOnDepartment(PrintingDepartmentAlgorithm* algo) const override;
+    virtual void executeOnDepartment(
+        std::unique_ptr<PrintingDepartmentAlgorithm>& algo) const override;
 
 private:
     const Day4* solver_;
@@ -78,7 +85,7 @@ public:
     virtual int result() const = 0;
 };
 
-class BaseAlgorithm : PrintingDepartmentAlgorithm {
+class BaseAlgorithm : public PrintingDepartmentAlgorithm {
 public:
     virtual void init() override;
     virtual void operator()(
@@ -95,7 +102,7 @@ private:
     int result_ = 0;
 };
 
-class SinglePassAlgorithm : BaseAlgorithm {
+class SinglePassAlgorithm : public BaseAlgorithm {
 protected:
     virtual void execute(const int fd, const off_t charsPerLine) override;
 
@@ -103,7 +110,7 @@ private:
     void countMiddleRow(std::string* buffers);
 };
 
-class InPlaceDeleteToStability : BaseAlgorithm {
+class InPlaceDeleteToStability : public BaseAlgorithm {
 protected:
     virtual void execute(const int fd, const off_t charsPerLine) override;
     virtual void markAccessiblePaperRoll(std::string::iterator& paperRoll) override;

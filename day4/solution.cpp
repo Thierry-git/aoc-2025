@@ -1,5 +1,6 @@
 #include "solution.h"
 
+#include <memory>
 #include <sys/stat.h>
 
 namespace solution {
@@ -12,15 +13,22 @@ int Day4::solve() const {
     std::unique_ptr<PrintingDepartmentDispatcher> reader
         = std::make_unique<SingleThreadedDispatcher>(this);
 
-    PrintingDepartmentAlgorithm* algo
-        = (PrintingDepartmentAlgorithm*)(new SinglePassAlgorithm);
+    auto algo = getAlgo();
     algo->init();
     reader->executeOnDepartment(algo);
     return algo->result();
 }
 
+std::unique_ptr<PrintingDepartmentAlgorithm> Day4Part1::getAlgo() const {
+    return std::make_unique<SinglePassAlgorithm>();
+}
+
+std::unique_ptr<PrintingDepartmentAlgorithm> Day4Part2::getAlgo() const {
+    return std::make_unique<InPlaceDeleteToStability>();
+}
+
 void SingleThreadedDispatcher::executeOnDepartment(
-    PrintingDepartmentAlgorithm* algo) const {
+    std::unique_ptr<PrintingDepartmentAlgorithm>& algo) const {
     const int fd = solver_->getFileDescriptor();
 
     struct stat sb;
@@ -130,11 +138,10 @@ void InPlaceDeleteToStability::execute(const int fd, const off_t charsPerLine) {
     std::vector<std::string> copy = rows;
     for (;;) {
         bool changed = false;
-        for (int i = 1; i < numRows; i++)
-            changed = countRowInplace(i, rows, copy) || changed;
+        for (int i = 1; i <= numRows; i++) changed |= countRowInplace(i, rows, copy);
 
         if (!changed) break;
-        rows.swap(copy);
+        rows = copy;
     }
 }
 
@@ -157,8 +164,10 @@ bool InPlaceDeleteToStability::countRowInplace(const int rowIndex,
         if (isPaperRoll(midRow - 1)) count++;
         if (isPaperRoll(midRow + 1)) count++;
 
-        if (changed |= count < UPPER_BOUND_OF_ACCESSIBILITY)
+        if (count < UPPER_BOUND_OF_ACCESSIBILITY) {
+            changed = true;
             markAccessiblePaperRoll(midCopy);
+        }
     }
 
     return changed;
