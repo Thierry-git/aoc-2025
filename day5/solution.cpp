@@ -15,8 +15,9 @@ Result Day5::solve() const {
     auto input = getInputStream();
 
     FreshnessDatabase freshDatabase;
-    Ingredients ingredients(RESERVE_INGREDIENT_NUM);
-    if (!(*input >> freshDatabase >> ingredients)) return 0;
+    Ingredients ingredients;
+    ingredients.reserve(RESERVE_INGREDIENT_NUM);
+    *input >> freshDatabase >> ingredients;
 
     return freshDatabase.countFresh(ingredients);
 }
@@ -25,7 +26,9 @@ Result Day5::solve() const {
 // FreshnessDatabase
 // ============================================================================
 
-FreshnessDatabase::FreshnessDatabase() : freshRanges_(RESERVE_RANGE_NUM) { }
+FreshnessDatabase::FreshnessDatabase() {
+    freshRanges_.reserve(RESERVE_RANGE_NUM);
+}
 
 void FreshnessDatabase::push_back(const IngredientRange& freshRange) {
     freshRanges_.push_back(freshRange);
@@ -52,11 +55,11 @@ Result FreshnessDatabase::countFresh(const Ingredients& ingredients) const {
 
     Result result = 0;
     ranges::for_each(ingredients, [this, &result](const Ingredient ingredient) {
-        if (ranges::any_of(
-                freshRanges_, [&ingredient, &result](const IngredientRange& freshRange) {
-                    return freshRange.from <= ingredient && freshRange.to <= ingredient;
-                }))
-            result++;
+        const bool isFresh = ranges::any_of(
+            freshRanges_, [&ingredient](const IngredientRange& freshRange) {
+                return freshRange.from <= ingredient && ingredient <= freshRange.to;
+            });
+        if (isFresh) result++;
     });
     return result;
 }
