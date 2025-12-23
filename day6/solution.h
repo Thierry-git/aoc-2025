@@ -4,6 +4,7 @@
 
 #include <mutex>
 #include <semaphore>
+#include <sys/mman.h>
 
 namespace solution {
 
@@ -21,18 +22,21 @@ enum class Operation {
 
 static constexpr int PROBLEM_LENGTH = 4;
 struct Problem {
+public:
     Problem() = delete;
-    constexpr Problem() : operands {}, op(Operation::Times), isSentinel(false) { }
+    constexpr Problem() : operands {}, op(Operation::Times), isSentinel_(false) { }
 
     std::array<Operand, PROBLEM_LENGTH> operands;
     Operation op;
 
+    static bool isSentinel(const Problem& problem) { return problem.isSentinel_; }
+
 private:
-    bool isSentinel = false;
+    bool isSentinel_ = false;
 
     friend class ProblemsMonitor;
 
-    constexpr Problem() : operands({}), op(Operation::Times), isSentinel(true) { }
+    constexpr Problem() : operands({}), op(Operation::Times), isSentinel_(true) { }
 };
 
 class ProblemsMonitor {
@@ -66,6 +70,46 @@ private:
     std::mutex mtx_;
 };
 
+static constexpr int NUM_PRODUCERS = 2;
+static constexpr int NUM_CONSUMERS = 2;
+
+class InputView {
+public:
+    InputView(const int fd, size_t length) :
+    length_(length), input_((char*)mmap(0, length, O_RDONLY, MAP_SHARED, fd, 0)) { }
+    ~InputView() { munmap(0, length_); }
+
+    const std::string_view& getView() const { return input_; }
+    size_t getLineSize() const;
+
+private:
+    const size_t length_;
+    const std::string_view input_;
+};
+
+class Parser {
+public:
+    Parser(const InputView& input, const int colOffset);
+
+    bool operator>>(Problem& problem);
+
+private:
+    off_t offset_;
+    std::stringstream streams_[5];
+
+    void advanceToNext();
+};
+
+struct ProducerArgs {
+    Parser parser;
+    ProblemsMonitor& problems;
+};
+
+struct ConsumerArgs {
+    ProblemsMonitor& problems;
+    ResultMonitor& result;
+};
+
 /**
  * @brief Base class for Day 6.
  *
@@ -78,11 +122,8 @@ public:
     Result solve() const override;
 
 protected:
-    static constexpr int NUM_PRODUCERS = 2;
-    static constexpr int NUM_CONSUMERS = 2;
-
-    virtual void producer() const = 0;
-    virtual void consumer() const = 0;
+    virtual void producer(ProducerArgs& args) const = 0;
+    virtual void consumer(ConsumerArgs& args) const = 0;
 };
 
 class Day6Part1 : public Day6 {
@@ -90,8 +131,8 @@ public:
     explicit Day6Part1(const std::string& inputFile) : Day6(inputFile) { }
 
 protected:
-    virtual void producer() const override;
-    virtual void consumer() const override;
+    virtual void producer(ProducerArgs& args) const override;
+    virtual void consumer(ConsumerArgs& args) const override;
 };
 
 class Day6Part2 : public Day6 {
@@ -99,8 +140,8 @@ public:
     explicit Day6Part2(const std::string& inputFile) : Day6(inputFile) { }
 
 protected:
-    virtual void producer() const override;
-    virtual void consumer() const override;
+    virtual void producer(ProducerArgs& args) const override;
+    virtual void consumer(ConsumerArgs& args) const override;
 };
 
 using Day6Part1Test = aoc::TestDecorator<Day6Part1>;
