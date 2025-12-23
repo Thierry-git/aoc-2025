@@ -85,7 +85,7 @@ Result FreshnessDatabase::sumRangeLengths() const {
     namespace ranges = std::ranges;
 
     return ranges::fold_left(
-        freshRanges_, 0, [](const Result acc, const IngredientRange& freshRange) {
+        freshRanges_, (Result)0, [](const Result acc, const IngredientRange& freshRange) {
             return acc + (freshRange.to - freshRange.from) + 1;
         });
 }
@@ -110,24 +110,26 @@ void PushBackEverything::operator()(
 void CombineOnPushBack::operator()(
     std::vector<IngredientRange>& freshRanges, IngredientRange freshRange) const {
 
-    const auto overlap = [&freshRange](const IngredientRange& other) -> bool {
+    const auto overlapOrTouch = [&freshRange](const IngredientRange& other) -> bool {
         const Ingredient lower = std::max(freshRange.from, other.from);
         const Ingredient upper = std::min(freshRange.to, other.to);
-        return lower <= upper;
+        return upper - lower + 1 >= 0;
     };
 
-    auto first = std::ranges::find_if(freshRanges, overlap);
-    auto rLast = std::ranges::find_if(freshRanges | std::views::reverse, overlap);
-    auto last = rLast.base();
-
-    std::vector<IngredientRange>::iterator insertAt = first;
-
-    if (rLast != freshRanges.rend()) freshRange.to = std::max(freshRange.to, rLast->to);
-    if (first != freshRanges.end()) {
-        freshRange.from = std::min(freshRange.from, first->from);
-        insertAt = freshRanges.erase(first, last);
+    auto first = std::ranges::find_if(freshRanges, overlapOrTouch);
+    if (first == freshRanges.end()) {
+        auto pos = std::ranges::lower_bound(
+            freshRanges, freshRange.from, {}, &IngredientRange::from);
+        freshRanges.insert(pos, freshRange);
+        return;
     }
 
+    auto rLast = std::ranges::find_if(freshRanges | std::views::reverse, overlapOrTouch);
+
+    freshRange.from = std::min(freshRange.from, first->from);
+    freshRange.to = std::max(freshRange.to, rLast->to);
+
+    auto insertAt = freshRanges.erase(first, rLast.base());
     freshRanges.insert(insertAt, freshRange);
 }
 

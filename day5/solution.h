@@ -12,7 +12,7 @@ namespace solution {
 // Day 5 Solution
 // ============================================================================
 
-using Result = int;
+using Result = long;
 using Ingredient = long;
 using Ingredients = std::vector<Ingredient>;
 template <typename T> struct Range {
