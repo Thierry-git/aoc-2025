@@ -23,21 +23,21 @@ using IngredientRange = Range<Ingredient>;
 
 class PushBackStrategy {
 public:
-    virtual void operator()(std::vector<IngredientRange>& freshRanges,
-        const IngredientRange& freshRange) const
+    virtual void operator()(
+        std::vector<IngredientRange>& freshRanges, IngredientRange freshRange) const
         = 0;
 };
 
 class PushBackEverything : public PushBackStrategy {
 public:
     virtual void operator()(std::vector<IngredientRange>& freshRanges,
-        const IngredientRange& freshRange) const override;
+        IngredientRange freshRange) const override;
 };
 
 class CombineOnPushBack : public PushBackStrategy {
 public:
     virtual void operator()(std::vector<IngredientRange>& freshRanges,
-        const IngredientRange& freshRange) const override;
+        IngredientRange freshRange) const override;
 };
 
 class FreshnessDatabase {

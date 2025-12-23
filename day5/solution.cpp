@@ -103,13 +103,32 @@ void FreshnessDatabase::setPushBackStrategy(std::unique_ptr<PushBackStrategy> st
 // ============================================================================
 
 void PushBackEverything::operator()(
-    std::vector<IngredientRange>& freshRanges, const IngredientRange& freshRange) const {
+    std::vector<IngredientRange>& freshRanges, IngredientRange freshRange) const {
     freshRanges.push_back(freshRange);
 }
 
 void CombineOnPushBack::operator()(
-    std::vector<IngredientRange>& freshRanges, const IngredientRange& freshRange) const {
-    freshRanges.push_back(freshRange);
+    std::vector<IngredientRange>& freshRanges, IngredientRange freshRange) const {
+
+    const auto overlap = [&freshRange](const IngredientRange& other) -> bool {
+        const Ingredient lower = std::max(freshRange.from, other.from);
+        const Ingredient upper = std::min(freshRange.to, other.to);
+        return lower <= upper;
+    };
+
+    auto first = std::ranges::find_if(freshRanges, overlap);
+    auto rLast = std::ranges::find_if(freshRanges | std::views::reverse, overlap);
+    auto last = rLast.base();
+
+    std::vector<IngredientRange>::iterator insertAt = first;
+
+    if (rLast != freshRanges.rend()) freshRange.to = std::max(freshRange.to, rLast->to);
+    if (first != freshRanges.end()) {
+        freshRange.from = std::min(freshRange.from, first->from);
+        insertAt = freshRanges.erase(first, last);
+    }
+
+    freshRanges.insert(insertAt, freshRange);
 }
 
 // ============================================================================
