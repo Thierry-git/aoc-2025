@@ -116,21 +116,22 @@ void CombineOnPushBack::operator()(
         return upper - lower + 1 >= 0;
     };
 
-    auto first = std::ranges::find_if(freshRanges, overlapOrTouch);
-    if (first == freshRanges.end()) {
-        auto pos = std::ranges::lower_bound(
-            freshRanges, freshRange.from, {}, &IngredientRange::from);
-        freshRanges.insert(pos, freshRange);
-        return;
+    auto pos = std::ranges::lower_bound(
+        freshRanges, freshRange.from, {}, &IngredientRange::from);
+
+    auto first = pos;
+    while (first != freshRanges.begin() && overlapOrTouch(*std::prev(first))) --first;
+
+    auto last = pos;
+    while (last != freshRanges.end() && overlapOrTouch(*last)) ++last;
+
+    if (first != last) {
+        freshRange.from = std::min(freshRange.from, first->from);
+        freshRange.to = std::max(freshRange.to, std::prev(last)->to);
+        pos = freshRanges.erase(first, last);
     }
 
-    auto rLast = std::ranges::find_if(freshRanges | std::views::reverse, overlapOrTouch);
-
-    freshRange.from = std::min(freshRange.from, first->from);
-    freshRange.to = std::max(freshRange.to, rLast->to);
-
-    auto insertAt = freshRanges.erase(first, rLast.base());
-    freshRanges.insert(insertAt, freshRange);
+    freshRanges.insert(pos, freshRange);
 }
 
 // ============================================================================
