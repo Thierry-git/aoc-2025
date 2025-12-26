@@ -1,5 +1,9 @@
 #include "solution.h"
 
+#include <sys/stat.h>
+#include <thread>
+#include <vector>
+
 namespace solution {
 
 // ============================================================================
@@ -7,25 +11,44 @@ namespace solution {
 // ============================================================================
 
 Result Day6::solve() const {
-    auto input = getInputStream();
+    const int fd = getFileDescriptor();
+    struct stat sb;
+    if (fstat(fd, &sb) < 0) {
+        close(fd);
+        throw std::system_error();
+    }
 
-    Result result = 0;
+    InputView input(fd, sb.st_size);
 
-    // TODO: Implement input parsing and processing
-    // Example:
-    //
-    // std::string line;
-    // while (std::getline(*input, line)) {
-    //     result += processItem(line);
-    // }
+    ProblemsMonitor problems;
+    ResultMonitor results;
 
-    return result;
+    std::vector<std::jthread> producers, consumers;
+    producers.reserve(NUM_PRODUCERS);
+    consumers.reserve(NUM_CONSUMERS);
+
+    for (int i = 0; i < NUM_PRODUCERS; i++) {
+        producers.emplace_back([this, &input, &problems, i]() {
+            ProducerArgs args { Parser(input, i), problems };
+            producer(args);
+        });
+    }
+
+    for (int i = 0; i < NUM_CONSUMERS; i++) {
+        consumers.emplace_back([this, &problems, &results]() {
+            ConsumerArgs args { problems, results };
+            consumer(args);
+        });
+    }
+
+    producers.clear(); /* Producers are done */
+
+    /* Signal consumers to exit */
+    for (int i = 0; i < NUM_CONSUMERS; i++) problems.pushSentinel();
+
+    consumers.clear();
+
+    return results.get();
 }
-
-// ============================================================================
-// Part-specific overrides
-// ============================================================================
-
-// Add Part1/Part2 specific method implementations here
 
 } // namespace solution

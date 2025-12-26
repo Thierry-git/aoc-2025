@@ -23,9 +23,7 @@ enum class Operation {
 static constexpr int PROBLEM_LENGTH = 4;
 struct Problem {
 public:
-    Problem() = delete;
-    constexpr Problem() : operands {}, op(Operation::Times), isSentinel_(false) { }
-
+    Problem() = default;
     std::array<Operand, PROBLEM_LENGTH> operands;
     Operation op;
 
@@ -36,7 +34,8 @@ private:
 
     friend class ProblemsMonitor;
 
-    constexpr Problem() : operands({}), op(Operation::Times), isSentinel_(true) { }
+    constexpr Problem(bool isSentinel) :
+    operands({}), op(Operation::Times), isSentinel_(isSentinel) { }
 };
 
 class ProblemsMonitor {
@@ -46,16 +45,14 @@ public:
     void push_back(const Problem& problem);
     Problem pop_front();
 
-    void pushSentinel() { push_back(SENTINEL); }
+    void pushSentinel() { push_back(Problem(true)); }
 
 private:
     static constexpr int PROBLEM_BUFSIZE = 16;
-    std::array<Problem, PROBLEM_BUFSIZE> problems_;
+    std::array<Problem, PROBLEM_BUFSIZE> problems_ = {};
     std::counting_semaphore<PROBLEM_BUFSIZE> empty_ { PROBLEM_BUFSIZE };
     std::counting_semaphore<PROBLEM_BUFSIZE> full_ { 0 };
     std::mutex mtx_;
-
-    static constexpr Problem SENTINEL = {};
 };
 
 class ResultMonitor {
@@ -76,8 +73,8 @@ static constexpr int NUM_CONSUMERS = 2;
 class InputView {
 public:
     InputView(const int fd, size_t length) :
-    length_(length), input_((char*)mmap(0, length, O_RDONLY, MAP_SHARED, fd, 0)) { }
-    ~InputView() { munmap(0, length_); }
+    length_(length), input_((char*)mmap(0, length, PROT_READ, MAP_SHARED, fd, 0)) { }
+    ~InputView() { munmap((void*)input_.data(), length_); }
 
     const std::string_view& getView() const { return input_; }
     size_t getLineSize() const;
