@@ -50,21 +50,26 @@ public:
 private:
     static constexpr int PROBLEM_BUFSIZE = 16;
     std::array<Problem, PROBLEM_BUFSIZE> problems_ = {};
+    std::array<Problem, PROBLEM_BUFSIZE>::const_iterator front_ = problems_.cbegin();
+    std::array<Problem, PROBLEM_BUFSIZE>::iterator back_ = problems_.begin();
     std::counting_semaphore<PROBLEM_BUFSIZE> empty_ { PROBLEM_BUFSIZE };
     std::counting_semaphore<PROBLEM_BUFSIZE> full_ { 0 };
-    std::mutex mtx_;
+    mutable std::mutex mtx_;
+
+    Problem retrieveFront();
+    void affectBack(const Problem& problem);
 };
 
 class ResultMonitor {
 public:
     ResultMonitor() = default;
 
-    void add(Result qty);
-    Result get();
+    void add(const Result qty);
+    Result get() const;
 
 private:
     Result result_ = 0;
-    std::mutex mtx_;
+    mutable std::mutex mtx_;
 };
 
 static constexpr int NUM_PRODUCERS = 2;

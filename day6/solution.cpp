@@ -67,25 +67,25 @@ void Day6Part1::consumer(ConsumerArgs& args) const {
     static const auto prod
         = [](const Result acc, const Operand operand) { return acc + operand; };
 
+    Result result;
     for (;;) {
         const Problem problem = args.problems.pop_front();
         if (Problem::isSentinel(problem)) return;
 
-        Result result;
         switch (problem.op) {
         case Operation::Plus:
-            result = ranges::fold_left(problem.operands, (Result)0, sum);
+            result += ranges::fold_left(problem.operands, (Result)0, sum);
             break;
         case Operation::Times:
-            result = ranges::fold_left(problem.operands, (Result)0, prod);
+            result += ranges::fold_left(problem.operands, (Result)0, prod);
             break;
         default:
-            result = 0;
+            result += 0;
             break;
         }
-
-        args.result.add(result);
     }
+
+    args.result.add(result);
 }
 
 void Day6Part2::producer(ProducerArgs& args) const {
@@ -94,6 +94,50 @@ void Day6Part2::producer(ProducerArgs& args) const {
 
 void Day6Part2::consumer(ConsumerArgs& args) const {
     return;
+}
+
+// ============================================================================
+// Monitors
+// ============================================================================
+
+void ProblemsMonitor::push_back(const Problem& problem) {
+    empty_.acquire();
+    std::lock_guard<std::mutex> lock(mtx_);
+    affectBack(problem);
+    full_.release();
+}
+
+Problem ProblemsMonitor::pop_front() {
+    full_.acquire();
+    std::lock_guard<std::mutex> lock(mtx_);
+    const Problem problem = retrieveFront();
+    empty_.release();
+    return problem;
+}
+
+void ProblemsMonitor::affectBack(const Problem& problem) {
+    static const auto begin = problems_.begin();
+    static const auto end = problems_.end();
+    *back_++ = problem;
+    if (back_ == end) back_ = begin;
+}
+
+Problem ProblemsMonitor::retrieveFront() {
+    static const auto begin = problems_.cbegin();
+    static const auto end = problems_.cend();
+    const Problem& problem = *front_++;
+    if (front_ == end) front_ = begin;
+    return problem;
+}
+
+void ResultMonitor::add(const Result qty) {
+    std::lock_guard<std::mutex> lock(mtx_);
+    result_ += qty;
+}
+
+Result ResultMonitor::get() const {
+    std::lock_guard<std::mutex> lock(mtx_);
+    return result_;
 }
 
 } // namespace solution
