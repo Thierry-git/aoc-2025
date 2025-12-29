@@ -152,7 +152,7 @@ length_(length), input_((char*)mmap(0, length, PROT_READ, MAP_SHARED, fd, 0)) {
     size_t start = 0;
     for (int i = 0; i <= PROBLEM_LENGTH; i++) {
         size_t end = input_.find('\n', start);
-        lines_[i] = input_.substr(start, end - start);
+        lines_[i] = input_.substr(start, end - start + 1);
         start = end + 1;
     }
 }
@@ -162,7 +162,7 @@ InputView::~InputView() {
 }
 
 std::string_view InputView::getLine(const size_t index) const {
-    return index <= PROBLEM_LENGTH ? lines_[index] : "";
+    return index <= PROBLEM_LENGTH ? lines_[index] : "\n";
 }
 
 Parser::Parser(const InputView& input, const int colOffset) :
