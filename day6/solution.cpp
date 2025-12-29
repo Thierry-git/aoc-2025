@@ -188,9 +188,11 @@ void Parser::init(int colOffset) {
 }
 
 bool Parser::operator>>(Problem& problem) {
+    bool success = true;
     for (int i = 0; i < PROBLEM_LENGTH; i++)
-        if (!(operandTokenizers_[i] >> problem.operands[i])) return false;
-    return opTokenizer_ >> problem.op;
+        success &= operandTokenizers_[i] >> problem.operands[i];
+    success &= opTokenizer_ >> problem.op;
+    return success;
 }
 
 template <typename T>
