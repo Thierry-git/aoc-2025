@@ -32,7 +32,7 @@ Result Day6::solve() const {
 
     for (int i = 0; i < NUM_PRODUCERS; i++) {
         producers.emplace_back([this, &input, &problems, i]() {
-            ProducerArgs args { Parser(input, i), problems };
+            ProducerArgs args { makeParser(input, i), problems };
             producer(args);
         });
     }
@@ -54,9 +54,14 @@ Result Day6::solve() const {
     return results.get();
 }
 
+std::unique_ptr<Parser> Day6Part1::makeParser(
+    const InputView& input, const unsigned colOffset) const {
+    return std::make_unique<HorizontalParser>(input, colOffset);
+}
+
 void Day6Part1::producer(ProducerArgs& args) const {
     Problem problem;
-    while (args.parser >> problem) {
+    while (*args.parser >> problem) {
         args.problems.push_back(problem);
     }
 }
@@ -89,6 +94,14 @@ void Day6Part1::consumer(ConsumerArgs& args) const {
     }
 
     args.result.add(result);
+}
+
+// TODO
+std::unique_ptr<Parser> Day6Part2::makeParser(
+    const InputView& input, const unsigned colOffset) const {
+    (void)input;
+    (void)colOffset;
+    return nullptr;
 }
 
 void Day6Part2::producer(ProducerArgs& args) const {
@@ -167,11 +180,11 @@ std::string_view InputView::getLine(const size_t index) const {
     return index <= PROBLEM_LENGTH ? lines_[index] : "\n";
 }
 
-Parser::Parser(const InputView& input, const unsigned colOffset) :
-Parser(input, colOffset, std::make_index_sequence<PROBLEM_LENGTH> {}) { }
+HorizontalParser::HorizontalParser(const InputView& input, const unsigned colOffset) :
+HorizontalParser(input, colOffset, std::make_index_sequence<PROBLEM_LENGTH> {}) { }
 
 template <size_t... Is>
-Parser::Parser(
+HorizontalParser::HorizontalParser(
     const InputView& input, const unsigned colOffset, std::index_sequence<Is...>) :
 operandTokenizers_ { { LineTokenizer<Operand>(input, Is, colOffset)... } },
 opTokenizer_({ input, PROBLEM_LENGTH, colOffset }) { }
@@ -182,7 +195,7 @@ unsigned moduloProducers(const int colOffset) {
     return mod;
 }
 
-bool Parser::operator>>(Problem& problem) {
+bool HorizontalParser::operator>>(Problem& problem) {
     bool success = true;
     for (int i = 0; i < PROBLEM_LENGTH; i++)
         success &= operandTokenizers_[i] >> problem.operands[i];

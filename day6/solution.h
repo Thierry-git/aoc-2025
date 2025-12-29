@@ -3,6 +3,7 @@
 #include "../common/aoc.h"
 
 #include <istream>
+#include <memory>
 #include <mutex>
 #include <semaphore>
 #include <sys/mman.h>
@@ -121,20 +122,41 @@ private:
 
 class Parser {
 public:
-    Parser(const InputView& input, const unsigned colOffset);
+    virtual bool operator>>(Problem& problem) = 0;
+};
 
-    bool operator>>(Problem& problem);
+class HorizontalParser : public Parser {
+public:
+    HorizontalParser(const InputView& input, const unsigned colOffset);
+
+    virtual bool operator>>(Problem& problem) override;
 
 private:
     template <size_t... Is>
-    Parser(const InputView& input, const unsigned colOffset, std::index_sequence<Is...>);
+    HorizontalParser(
+        const InputView& input, const unsigned colOffset, std::index_sequence<Is...>);
 
     std::array<LineTokenizer<Operand>, PROBLEM_LENGTH> operandTokenizers_;
     LineTokenizer<Operation> opTokenizer_;
 };
 
+// TODO
+// class VerticalReverseParser : public Parser {
+// public:
+//     VerticalReverseParser(const InputView& input, const unsigned colOffset);
+
+//     virtual bool operator>>(Problem& problem) override;
+
+// private:
+//     template <size_t... Is>
+//     VerticalReverseParser(
+//         const InputView& input, const unsigned colOffset, std::index_sequence<Is...>);
+
+//     LineTokenizer<Operation> opTokenizer_;
+// };
+
 struct ProducerArgs {
-    Parser parser;
+    std::unique_ptr<Parser> parser;
     ProblemsMonitor& problems;
 };
 
@@ -155,6 +177,9 @@ public:
     Result solve() const override;
 
 protected:
+    virtual std::unique_ptr<Parser> makeParser(
+        const InputView& input, const unsigned colOffset) const
+        = 0;
     virtual void producer(ProducerArgs& args) const = 0;
     virtual void consumer(ConsumerArgs& args) const = 0;
 };
@@ -164,6 +189,8 @@ public:
     explicit Day6Part1(const std::string& inputFile) : Day6(inputFile) { }
 
 protected:
+    virtual std::unique_ptr<Parser> makeParser(
+        const InputView& input, const unsigned colOffset) const override;
     virtual void producer(ProducerArgs& args) const override;
     virtual void consumer(ConsumerArgs& args) const override;
 };
@@ -173,6 +200,8 @@ public:
     explicit Day6Part2(const std::string& inputFile) : Day6(inputFile) { }
 
 protected:
+    virtual std::unique_ptr<Parser> makeParser(
+        const InputView& input, const unsigned colOffset) const override;
     virtual void producer(ProducerArgs& args) const override;
     virtual void consumer(ConsumerArgs& args) const override;
 };
