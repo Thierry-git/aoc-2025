@@ -2,6 +2,7 @@
 
 #include "../common/aoc.h"
 
+#include <istream>
 #include <mutex>
 #include <semaphore>
 #include <sys/mman.h>
@@ -19,6 +20,8 @@ enum class Operation {
     Times = '*',
     Plus = '+',
 };
+
+std::istream& operator>>(std::istream& is, Operation& op);
 
 static constexpr int PROBLEM_LENGTH = 4;
 struct Problem {
@@ -77,16 +80,33 @@ static constexpr int NUM_CONSUMERS = 2;
 
 class InputView {
 public:
-    InputView(const int fd, size_t length) :
-    length_(length), input_((char*)mmap(0, length, PROT_READ, MAP_SHARED, fd, 0)) { }
-    ~InputView() { munmap((void*)input_.data(), length_); }
+    InputView(const int fd, const size_t length);
+    ~InputView();
 
-    const std::string_view& getView() const { return input_; }
-    size_t getLineSize() const;
+    std::string_view getLine(const size_t index) const;
 
 private:
     const size_t length_;
     const std::string_view input_;
+
+    std::array<std::string_view, PROBLEM_LENGTH + 1> lines_;
+};
+
+template <typename T> class LineTokenizer {
+public:
+    LineTokenizer(const InputView& input, const size_t lineIndex);
+
+    bool operator>>(T& out);
+
+private:
+    static constexpr int STRIDE = NUM_PRODUCERS;
+
+    const std::string_view line_;
+    size_t pos_;
+
+    void skipStride();
+    bool skipWhitespace();
+    std::string currentEntry() const;
 };
 
 class Parser {
@@ -96,10 +116,13 @@ public:
     bool operator>>(Problem& problem);
 
 private:
-    off_t offset_;
-    std::stringstream streams_[5];
+    template <size_t... Is>
+    Parser(const InputView& input, const int colOffset, std::index_sequence<Is...>);
 
-    void advanceToNext();
+    std::array<LineTokenizer<Operand>, PROBLEM_LENGTH> operandTokenizers_;
+    LineTokenizer<Operation> opTokenizer_;
+
+    void init(int colOffset);
 };
 
 struct ProducerArgs {
