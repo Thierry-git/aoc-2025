@@ -21,7 +21,13 @@ enum class Operation {
     Plus = '+',
 };
 
+template <typename T>
+concept StreamExtractable = requires(std::istream& is, T& t) {
+    { is >> t } -> std::same_as<std::istream&>;
+};
+
 std::istream& operator>>(std::istream& is, Operation& op);
+std::ostream& operator<<(std::ostream& os, const Operation& op);
 
 static constexpr int PROBLEM_LENGTH = 4;
 struct Problem {
@@ -95,35 +101,36 @@ private:
 
 template <typename T> class LineTokenizer {
 public:
-    LineTokenizer(const InputView& input, const size_t lineIndex);
+    LineTokenizer(
+        const InputView& input, const size_t lineIndex, const unsigned colOffset);
 
-    bool operator>>(T& out);
+    bool operator>>(T& out)
+        requires StreamExtractable<T>;
 
 private:
     static constexpr int STRIDE = NUM_PRODUCERS;
 
     const std::string_view line_;
-    size_t pos_;
+    size_t pos_ = 0;
 
     void skipStride();
+    void skipEntries(const unsigned n);
     bool skipWhitespace();
     std::string currentEntry() const;
 };
 
 class Parser {
 public:
-    Parser(const InputView& input, const int colOffset);
+    Parser(const InputView& input, const unsigned colOffset);
 
     bool operator>>(Problem& problem);
 
 private:
     template <size_t... Is>
-    Parser(const InputView& input, const int colOffset, std::index_sequence<Is...>);
+    Parser(const InputView& input, const unsigned colOffset, std::index_sequence<Is...>);
 
     std::array<LineTokenizer<Operand>, PROBLEM_LENGTH> operandTokenizers_;
     LineTokenizer<Operation> opTokenizer_;
-
-    void init(int colOffset);
 };
 
 struct ProducerArgs {

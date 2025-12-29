@@ -56,7 +56,9 @@ Result Day6::solve() const {
 
 void Day6Part1::producer(ProducerArgs& args) const {
     Problem problem;
-    while (args.parser >> problem) args.problems.push_back(problem);
+    while (args.parser >> problem) {
+        args.problems.push_back(problem);
+    }
 }
 
 void Day6Part1::consumer(ConsumerArgs& args) const {
@@ -66,19 +68,19 @@ void Day6Part1::consumer(ConsumerArgs& args) const {
         = [](const Result acc, const Operand operand) { return acc + operand; };
 
     static const auto prod
-        = [](const Result acc, const Operand operand) { return acc + operand; };
+        = [](const Result acc, const Operand operand) { return acc * operand; };
 
-    Result result;
+    Result result = 0;
     for (;;) {
         const Problem problem = args.problems.pop_front();
-        if (Problem::isSentinel(problem)) return;
+        if (Problem::isSentinel(problem)) break;
 
         switch (problem.op) {
         case Operation::Plus:
             result += ranges::fold_left(problem.operands, (Result)0, sum);
             break;
         case Operation::Times:
-            result += ranges::fold_left(problem.operands, (Result)0, prod);
+            result += ranges::fold_left(problem.operands, (Result)1, prod);
             break;
         default:
             result += 0;
@@ -165,26 +167,19 @@ std::string_view InputView::getLine(const size_t index) const {
     return index <= PROBLEM_LENGTH ? lines_[index] : "\n";
 }
 
-Parser::Parser(const InputView& input, const int colOffset) :
+Parser::Parser(const InputView& input, const unsigned colOffset) :
 Parser(input, colOffset, std::make_index_sequence<PROBLEM_LENGTH> {}) { }
 
 template <size_t... Is>
-Parser::Parser(const InputView& input, const int colOffset, std::index_sequence<Is...>) :
-operandTokenizers_ { { LineTokenizer<Operand>(input, Is)... } },
-opTokenizer_({ input, PROBLEM_LENGTH }) {
-    init(colOffset);
-}
+Parser::Parser(
+    const InputView& input, const unsigned colOffset, std::index_sequence<Is...>) :
+operandTokenizers_ { { LineTokenizer<Operand>(input, Is, colOffset)... } },
+opTokenizer_({ input, PROBLEM_LENGTH, colOffset }) { }
 
 unsigned moduloProducers(const int colOffset) {
     int mod = colOffset % (int)NUM_PRODUCERS;
     if (mod < 0) mod += NUM_PRODUCERS;
     return mod;
-}
-
-void Parser::init(int colOffset) {
-    colOffset = moduloProducers(colOffset);
-    Problem tmp;
-    for (int i = 0; i < colOffset; i++) *this >> tmp;
 }
 
 bool Parser::operator>>(Problem& problem) {
@@ -196,21 +191,33 @@ bool Parser::operator>>(Problem& problem) {
 }
 
 template <typename T>
-LineTokenizer<T>::LineTokenizer(const InputView& input, const size_t lineIndex) :
-line_(input.getLine(lineIndex)) { }
+LineTokenizer<T>::LineTokenizer(const InputView& input, const size_t lineIndex,
+    const unsigned colOffset) : line_(input.getLine(lineIndex)) {
+    skipWhitespace();
+    skipEntries(colOffset);
+}
 
-template <typename T> bool LineTokenizer<T>::operator>>(T& out) {
-    if (!this->skipWhitespace()) return false;
+template <typename T>
+bool LineTokenizer<T>::operator>>(T& out)
+    requires StreamExtractable<T>
+{
     std::stringstream ss;
-    ss << this->currentEntry();
-    ss >> out;
+    std::string tmp(this->currentEntry());
+    ss << tmp;
+
+    if (!(ss >> out)) return false;
+
     this->skipStride();
     return true;
 }
 
 template <typename T> void LineTokenizer<T>::skipStride() {
-    for (int i = 0; i < STRIDE; i++) {
-        const size_t newPos = line_.find_first_of(" \n");
+    skipEntries(STRIDE);
+}
+
+template <typename T> void LineTokenizer<T>::skipEntries(const unsigned n) {
+    for (unsigned i = 0; i < n; i++) {
+        const size_t newPos = line_.find_first_of(" \n", pos_);
         if (newPos == std::string::npos) return;
         pos_ = newPos;
         if (!this->skipWhitespace()) return;
@@ -218,14 +225,14 @@ template <typename T> void LineTokenizer<T>::skipStride() {
 }
 
 template <typename T> bool LineTokenizer<T>::skipWhitespace() {
-    const size_t newPos = line_.find_first_not_of(" ");
+    const size_t newPos = line_.find_first_not_of(" ", pos_);
     if (newPos == std::string::npos) return false;
     pos_ = newPos;
     return true;
 }
 
 template <typename T> std::string LineTokenizer<T>::currentEntry() const {
-    const size_t end = line_.find_first_of(" \n");
+    const size_t end = line_.find_first_of(" \n", pos_);
     if (end == std::string::npos) return "";
     return std::string(line_.substr(pos_, end - pos_ + 1));
 }
@@ -251,21 +258,23 @@ std::istream& operator>>(std::istream& is, Operation& op) {
 // ============================================================================
 
 std::ostream& operator<<(std::ostream& os, const Problem& problem) {
-    char op;
-    switch (problem.op) {
+    for (int i = 0; i < PROBLEM_LENGTH - 1; i++)
+        os << problem.operands[i] << ' ' << problem.op << ' ';
+    return os << problem.operands[PROBLEM_LENGTH - 1];
+}
+
+std::ostream& operator<<(std::ostream& os, const Operation& op) {
+    switch (op) {
     case Operation::Plus:
-        op = '+';
+        os << '+';
         break;
 
     case Operation::Times:
     default:
-        op = '*';
+        os << '*';
         break;
     }
-
-    for (int i = 0; i < PROBLEM_LENGTH - 1; i++)
-        os << problem.operands[i] << ' ' << op << ' ';
-    return os << problem.operands[PROBLEM_LENGTH - 1];
+    return os;
 }
 
 } // namespace solution
