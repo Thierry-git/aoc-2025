@@ -246,4 +246,26 @@ std::istream& operator>>(std::istream& is, Operation& op) {
     return is;
 }
 
+// ============================================================================
+// Misc
+// ============================================================================
+
+std::ostream& operator<<(std::ostream& os, const Problem& problem) {
+    char op;
+    switch (problem.op) {
+    case Operation::Plus:
+        op = '+';
+        break;
+
+    case Operation::Times:
+    default:
+        op = '*';
+        break;
+    }
+
+    for (int i = 0; i < PROBLEM_LENGTH - 1; i++)
+        os << problem.operands[i] << ' ' << op << ' ';
+    return os << problem.operands[PROBLEM_LENGTH - 1];
+}
+
 } // namespace solution

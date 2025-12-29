@@ -31,6 +31,7 @@ public:
     Operation op;
 
     static bool isSentinel(const Problem& problem) { return problem.isSentinel_; }
+    friend std::ostream& operator<<(std::ostream& os, const Problem& problem);
 
 private:
     bool isSentinel_ = false;
